@@ -1,3 +1,4 @@
+import os
 import sys
 
 from scrapper.spiders.ebay_scrapper import EbayScrapperSpider
@@ -23,4 +24,7 @@ def scrape(target_price: float, keywords: list[str]) -> None:
 
 
 if __name__ == "__main__":
+    # create logs dir
+    os.mkdir('../data/logs')
+    
     scrape(float(sys.argv[1]), sys.argv[2:])

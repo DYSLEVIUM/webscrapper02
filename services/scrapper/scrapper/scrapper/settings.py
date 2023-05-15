@@ -36,7 +36,7 @@ CONCURRENT_REQUESTS = int(os.environ.get("CONCURRENT_REQUESTS", "16"))
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = int(os.environ.get("DOWNLOAD_DELAY", "0"))
+DOWNLOAD_DELAY = float(os.environ.get("DOWNLOAD_DELAY", "0"))
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16
 # CONCURRENT_REQUESTS_PER_IP = 16

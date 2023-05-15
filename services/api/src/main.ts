@@ -11,6 +11,7 @@ import {
     RouteNotFoundError,
 } from './shared/errors/express';
 import { WSServerStartError } from './shared/errors/ws';
+import { ScrapperManager } from './shared/models/Scrapper';
 import { accessEnv } from './shared/utils/accessEnv';
 import { logger } from './shared/utils/logger';
 
@@ -58,42 +59,15 @@ const startWSServer = async (server: http.Server) => {
 
 const main = async () => {
     try {
-        // const app = await startExpressServer();
-        // await startWSServer(app);
-        // const scrapperManager = new ScrapperManager();
-        // scrapperManager.addScrapper('Gpu Scrapper', 'nvidia gpu 3060', 3000);
-        // console.log(await scrapperManager.startAllScrappers());
-        // console.log(await scrapperManager.stopAllScrappers());
-        fetch(
-            `http://scrapper:${accessEnv(
-                Environment.BOT_PORT,
-                '5000'
-            )}/start_scrapper`,
-            {
-                method: 'POST',
-                body: JSON.stringify({
-                    target_price: 100,
-                    keywords: 'water bottle',
-                }),
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                },
-            }
-        ).then((data) => {
-            console.log(data);
-        });
+        const app = await startExpressServer();
+        await startWSServer(app);
+        const scrapperManager = new ScrapperManager();
+        scrapperManager.addScrapper('Gpu Scrapper', 'nvidia gpu 3060', 3000);
+        console.log(await scrapperManager.startAllScrappers());
+        console.log(await scrapperManager.stopAllScrappers());
     } catch (err) {
-        logger.error(err);
+        logger.error("Couldn't start server.", err);
     }
-
-    // const runCommand = `docker-compose --env-file=../envs/.env.dev -f ../docker/docker-compose.yaml -f ../docker/docker-compose.dev.yaml run scrapper`;
-    // try {
-    //     execSync(runCommand, { stdio: 'inherit' });
-    //     console.log('Container started successfully.');
-    // } catch (error) {
-    //     console.error('Error occurred while starting container.', error);
-    // }
 };
 
 main();

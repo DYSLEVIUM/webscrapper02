@@ -34,3 +34,5 @@
 
 **/requirements.*
 **/.venv
+
+**/__pycache__

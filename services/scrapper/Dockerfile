@@ -17,7 +17,6 @@ RUN python3 -m pip install pipreqs pip-tools \
 FROM python:alpine
 
 RUN apk update && apk upgrade
-RUN apk add tree
 RUN apk add --update --no-cache --virtual .build-deps gcc libc-dev linux-headers libffi-dev
 RUN python3 -m pip install --upgrade pip
 
