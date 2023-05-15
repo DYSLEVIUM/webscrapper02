@@ -1,0 +1,35 @@
+# os generated files
+**/.DS_Store
+
+# dependencies
+**/node_modules
+
+# Local Netlify folder
+**/.netlify
+
+# development
+**/.idea
+**/.docker
+**/.env.dev
+**/.env.prod
+**/.next
+**/.vscode
+**/data
+
+# production
+**/yarn-debug.log*
+**/yarn-error.log*
+**/.pnpm-debug.log*
+**/.pnpm-error.log*
+**/.pnpm-store
+**/dist
+**/log
+
+**/.yarn
+**/.pnp.*
+
+**/.cer
+**/.der
+**/.pem
+
+**/requirements.*

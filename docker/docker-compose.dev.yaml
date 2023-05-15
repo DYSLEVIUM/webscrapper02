@@ -1,0 +1,18 @@
+version: '3.7'
+services:
+  scrapper:
+    env_file:
+      - ../envs/.env.dev
+    volumes:
+      # this directory must be present in the host machine for development as it looks for changes in the files for hot-reloading and calculating diff
+      # not giving read-only as we are saving everything in the host machine
+      - ../services/scrapper:/usr/app
+  api:
+    build:
+      target: dev
+    env_file:
+      - ../envs/.env.dev
+    volumes:
+      # this directory must be present in the host machine for development as it looks for changes in the files for hot-reloading and calculating diff
+      # not giving read-only as we are saving everything in the host machine
+      - ../services/api:/usr/app
