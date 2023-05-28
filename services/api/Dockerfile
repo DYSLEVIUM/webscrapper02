@@ -3,7 +3,7 @@ FROM node:alpine AS deps
 
 RUN apk update && apk upgrade
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache curl libc6-compat \
+RUN apk add --update --no-cache curl libc6-compat \
     && curl -sL https://unpkg.com/@pnpm/self-installer | node
 
 WORKDIR /usr/app
@@ -17,7 +17,7 @@ RUN pnpm install
 FROM node:alpine AS dev
 
 RUN apk update && apk upgrade
-RUN apk add --no-cache --virtual .build-deps curl libc6-compat \
+RUN apk add --update --no-cache --virtual .build-deps curl libc6-compat \
     && curl -sL https://unpkg.com/@pnpm/self-installer | node
 
 WORKDIR /usr/app
@@ -28,6 +28,11 @@ COPY . .
 
 RUN apk del .build-deps
 
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+
+RUN mkdir -p data/logs && chown -R nodejs:nodejs data
+
 VOLUME /usr/app/data
 
 CMD ["pnpm", "dev"]
@@ -37,7 +42,7 @@ CMD ["pnpm", "dev"]
 FROM node:alpine AS builder
 
 RUN apk update && apk upgrade
-RUN apk add --no-cache curl libc6-compat \
+RUN apk add --update --no-cache curl libc6-compat \
     && curl -sL https://unpkg.com/@pnpm/self-installer | node
 
 WORKDIR /usr/app

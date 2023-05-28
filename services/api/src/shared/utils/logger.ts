@@ -2,12 +2,11 @@ import path from 'node:path';
 import { createLogger, format, transports } from 'winston';
 import 'winston-daily-rotate-file';
 import TransportStream from 'winston-transport';
-import { PROD } from '../constants/environments';
 
 const LOG_PATH = path.join(__dirname, '../../../data/logs');
 
 const getLogFilePath = (filename: string) => {
-    return path.join(LOG_PATH, `scrapper-%DATE%-${filename}.log`);
+    return path.join(LOG_PATH, `api-%DATE%-${filename}.log`);
 };
 
 const getTransportOptions = (logLevel: string) => {
@@ -35,7 +34,7 @@ const getTransports = (transportFiles: string[]): TransportStream[] => {
 
 export const logger = createLogger({
     level: 'info',
-    defaultMeta: { service: 'winston' },
+    defaultMeta: { service: 'api' },
     format: format.combine(
         format.errors({ stack: true }),
         format.splat(),
@@ -43,8 +42,10 @@ export const logger = createLogger({
             format: 'YYYY-MM-DD HH:mm:ss',
         }),
         format.printf(
-            ({ timestamp, level, message }) =>
-                `[${timestamp as string}] ${level}: ${message}`
+            ({ timestamp, level, message, service }) =>
+                `[${timestamp as string}] ${
+                    service as string
+                } ${level}: ${message}`
         )
     ),
 
@@ -52,20 +53,20 @@ export const logger = createLogger({
     transports: getTransports(['info']),
 });
 
-if (!PROD) {
-    logger.add(
-        new transports.Console({
-            format: format.combine(
-                format.colorize(),
-                format.splat(),
-                format.timestamp({
-                    format: 'YYYY-MM-DD HH:mm:ss',
-                }),
-                format.printf(
-                    ({ timestamp, level, message }) =>
-                        `[${timestamp as string}] ${level}: ${message}`
-                )
-            ),
-        })
-    );
-}
+logger.add(
+    new transports.Console({
+        format: format.combine(
+            format.colorize(),
+            format.splat(),
+            format.timestamp({
+                format: 'YYYY-MM-DD HH:mm:ss',
+            }),
+            format.printf(
+                ({ timestamp, level, message, service }) =>
+                    `[${timestamp as string}] ${
+                        service as string
+                    } ${level}: ${message}`
+            )
+        ),
+    })
+);

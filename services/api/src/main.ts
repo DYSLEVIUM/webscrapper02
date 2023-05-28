@@ -11,7 +11,7 @@ import {
     RouteNotFoundError,
 } from './shared/errors/express';
 import { WSServerStartError } from './shared/errors/ws';
-import { ScrapperManager } from './shared/models/Scrapper';
+import { ScriptManager } from './shared/models';
 import { accessEnv } from './shared/utils/accessEnv';
 import { logger } from './shared/utils/logger';
 
@@ -61,10 +61,14 @@ const main = async () => {
     try {
         const app = await startExpressServer();
         await startWSServer(app);
-        const scrapperManager = new ScrapperManager();
-        scrapperManager.addScrapper('Gpu Scrapper', 'nvidia gpu 3060', 3000);
-        console.log(await scrapperManager.startAllScrappers());
-        console.log(await scrapperManager.stopAllScrappers());
+
+        await ScriptManager.buildImage();
+
+        ScriptManager.addScript('Gpu Scrapper 3060', 3000, 'nvidia gpu 3060');
+        ScriptManager.addScript('Gpu Scrapper 2060', 3000, 'nvidia gpu 2060');
+
+        ScriptManager.startAllScripts();
+        ScriptManager.stopAllScripts();
     } catch (err) {
         logger.error("Couldn't start server.", err);
     }

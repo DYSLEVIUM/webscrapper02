@@ -1,6 +1,6 @@
 import { Express, Router } from 'express';
 import { authGuard, routeLog } from '../middlewares';
-import { default as scrapperRouter } from './scrapper';
+import { default as scriptRouter } from './script';
 
 const attachPublicRoutes = (router: Router) => {
     router.get('/', (_req, res) => {
@@ -15,7 +15,7 @@ const attachPublicRoutes = (router: Router) => {
 };
 
 const attachPrivateRoutes = (router: Router) => {
-    router.use('/scrapper', authGuard, scrapperRouter);
+    router.use('/script', authGuard, scriptRouter);
     return router;
 };
 

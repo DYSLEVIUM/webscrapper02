@@ -21,7 +21,7 @@ LOG_ENABLED = True
 LOG_LEVEL = 'DEBUG'
 LOG_FILE = '../data/logs/scrapy.log'
 
-FEED_URI = '../data/out.json'
+# FEED_URI = '../data/out.json'
 FEED_FORMAT= 'json'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent

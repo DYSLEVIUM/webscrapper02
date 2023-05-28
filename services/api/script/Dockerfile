@@ -9,11 +9,14 @@ WORKDIR /usr/app
 
 COPY . .
 
+RUN addgroup -g 1001 -S script
+RUN adduser -S script -u 1001
+
 RUN python3 -m pip install pipreqs pip-tools \
     && pipreqs scrapper --savepath=requirements.in \
     && pip-compile
 
-# scrapper
+# script
 FROM python:alpine
 
 RUN apk update && apk upgrade
@@ -28,13 +31,13 @@ COPY --from=builder /usr/app/requirements.txt .
 RUN python3 -m pip install -r requirements.txt
 RUN apk del .build-deps
 
-RUN addgroup -g 1001 -S scrapper
-RUN adduser -S scrapper -u 1001
+RUN addgroup -g 1001 -S script
+RUN adduser -S script -u 1001
 
-RUN mkdir -p data/logs && chown -R scrapper:scrapper data
+RUN mkdir -p data/logs && chown -R script:script data
 
 VOLUME /usr/app/data
 
 WORKDIR /usr/app/scrapper
 
-CMD ["python3", "main.py", "1000", "nvidia gpu 3000"]
+ENTRYPOINT ["python3", "main.py"]

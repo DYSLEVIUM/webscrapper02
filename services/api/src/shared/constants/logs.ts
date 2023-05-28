@@ -8,10 +8,11 @@ export const enum WSServer {
     ERROR_START = 'Error starting WS server.',
 }
 
-export const enum Scrapper {
-    NOT_FOUND = 'Scrapper not found.',
-    SUCCESSFUL_START = 'Scrapper running.',
-    ERROR_START = 'Error starting scrapper.',
-    SUCCESSFUL_STOP = 'Scrapper stopped.',
-    ERROR_STOP = 'Error stopping scrapper.',
+export const enum Script {
+    NOT_FOUND = 'Script not found.',
+    SUCCESSFUL_START = 'Script running.',
+    ERROR_START = 'Error starting Script.',
+    SUCCESSFUL_STOP = 'Script stopped.',
+    ERROR_STOP = 'Error stopping script.',
+    EXECUTION_STOP = 'Error executing script.',
 }

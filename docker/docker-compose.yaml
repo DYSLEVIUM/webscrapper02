@@ -1,9 +1,9 @@
 version: '3.7'
 services:
-  scrapper:
-    container_name: scrapper
+  script:
+    container_name: script
     build:
-      context: ../services/scrapper
+      context: ../services/api/script
       dockerfile: Dockerfile
     restart: never
     deploy:
@@ -21,7 +21,8 @@ services:
     networks:
       - scraps
     volumes:
-      - ../data/scrapper:/usr/app/data
+      - /usr/app/scrapper/data/script:/usr/app/data
+      - /usr/app/scrapper/data/script/logs:/usr/app/data
   api:
     container_name: api
     build:
@@ -33,7 +34,7 @@ services:
     deploy:
       resources:
           limits:
-            cpus: "1"
+            cpus: "2"
             # app will crash if enough memory is not provided
             # memory: 150M
       replicas: 1
@@ -45,8 +46,11 @@ services:
         delay: 10s
     networks:
       - scraps
+    user: root
     volumes:
-      - ../data/api:/usr/app/data
+      - /usr/app/scrapper/data/api:/usr/app/data
+      - /usr/app/scrapper/data/api/logs:/usr/app/data/logs
+      - /var/run/docker.sock:/var/run/docker.sock # host and the container will share the same docker engine
 
 networks:
   scraps:
