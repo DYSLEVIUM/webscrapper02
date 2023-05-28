@@ -16,7 +16,7 @@ router.get('/', (_req, res: Response<APIResponse>) => {
 // we have to call next, if the function is async so that it doesn't lead to unhandled promise rejections
 
 router.post('/create', async (req, res: Response<APIResponse>, next) => {
-    const { name, targetPrice, keywords } = req.body;
+    const { name, targetPrice, keywords, runFreq } = req.body;
 
     if (
         !name ||
@@ -24,7 +24,9 @@ router.post('/create', async (req, res: Response<APIResponse>, next) => {
         !keywords ||
         keywords === '' ||
         !targetPrice ||
-        isNaN(targetPrice)
+        isNaN(targetPrice) ||
+        !runFreq ||
+        isNaN(runFreq)
     ) {
         res.status(200).send({
             message: 'Malformed data.',
@@ -40,7 +42,8 @@ router.post('/create', async (req, res: Response<APIResponse>, next) => {
             data: await ScriptManager.addScript(
                 name,
                 parseFloat(targetPrice),
-                keywords
+                keywords,
+                parseFloat(runFreq)
             ),
             error: null,
         });

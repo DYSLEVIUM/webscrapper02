@@ -1,3 +1,4 @@
+import { Server } from 'socket.io';
 import { createTimestamps } from '../decorators/createTimestamps';
 import { ScriptNotFoundError } from '../errors/script';
 import { logger } from '../utils/logger';
@@ -6,10 +7,16 @@ import Script from './Script';
 
 export default class ScriptManager {
     static readonly imageName = `python_script_bot_${Date.now()}`;
+
+    public static WS: Server;
     private static scripts: Script[] = [];
 
     constructor() {
         return ScriptManager;
+    }
+
+    static setWS(ws: Server) {
+        this.WS = ws;
     }
 
     @createTimestamps()
@@ -51,14 +58,20 @@ export default class ScriptManager {
     static addScript(
         name: string,
         targetPrice: number,
-        keywords: string
+        keywords: string,
+        runFeq: number
     ): Promise<Script> {
         return new Promise((resolve, reject) => {
             try {
                 logger.info(
                     `Creating script with name: ${name}, targetPrice: ${targetPrice}, keywords: ${keywords}.`
                 );
-                const newScript = new Script(name, targetPrice, keywords);
+                const newScript = new Script(
+                    name,
+                    targetPrice,
+                    keywords,
+                    runFeq
+                );
 
                 ScriptManager.scripts.push(newScript);
                 resolve(newScript);

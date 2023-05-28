@@ -1,10 +1,10 @@
 export const enum ExpressServer {
-    SUCCESSFUL_START = 'Express Server running.',
+    SUCCESSFUL_START = 'Express server running.',
     ERROR_START = 'Error starting express server.',
 }
 
 export const enum WSServer {
-    SUCCESSFUL_START = 'WS Server running.',
+    SUCCESSFUL_START = 'WS server running.',
     ERROR_START = 'Error starting WS server.',
 }
 

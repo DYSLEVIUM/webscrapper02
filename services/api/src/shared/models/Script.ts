@@ -14,16 +14,19 @@ export default class Script {
     private static readonly containerVolumePath = '/usr/app/data';
     private static readonly hostVolumePath =
         '/usr/app/scrapper/data/api/script/data';
+
     private readonly createdAt: Date;
     private readonly containerName: string;
 
     private isActive = false;
+    private shouldBeRunning = false;
     private updatedAt: Date;
 
     constructor(
         private readonly name: string,
         private targetPrice: number,
-        private keywords: string
+        private keywords: string,
+        private runFreq: number
     ) {
         this.createdAt = this.updatedAt = new Date(Date.now()); // new Date() uses system time whereas new Date(Date.now()) uses UTC time
         this.containerName = `img-${
@@ -41,10 +44,11 @@ export default class Script {
     }
 
     @createTimestamps()
-    private runContainer(): Promise<void> {
+    private runScript(): Promise<void> {
         logger.info(`Running container ${this.containerName}.`);
 
         return new Promise((resolve, reject) => {
+            this.isActive = true;
             DockerManager.docker
                 .run(
                     ScriptManager.imageName,
@@ -71,7 +75,7 @@ export default class Script {
                             [`${Script.containerVolumePath}/logs`]: {},
                         },
                         HostConfig: {
-                            // AutoRemove: true,
+                            AutoRemove: true,
                             // NetworkMode: 'scraps',
                             Binds: [
                                 `${Script.hostVolumePath}/${this.containerName}:${Script.containerVolumePath}`,
@@ -101,6 +105,7 @@ export default class Script {
                             Docker.Container
                         ]
                     ) => {
+                        this.isActive = false;
                         var [output, container] = data;
 
                         if (output.Error) {
@@ -130,13 +135,14 @@ export default class Script {
                         `Error executing script: ${this.scriptId}.`,
                         err
                     );
+                    this.isActive = false;
                     reject(err);
                 });
         });
     }
 
     @createTimestamps()
-    private stopContainer(): Promise<void> {
+    private stopScript(): Promise<void> {
         logger.info(`Stopping container ${this.containerName}.`);
 
         return new Promise((resolve, reject) => {
@@ -144,12 +150,15 @@ export default class Script {
                 .getContainer(this.containerName)
                 .stop()
                 .then(() => {
+                    this.isActive = false;
+                    this.shouldBeRunning = false;
                     logger.info(
                         `Container ${this.containerName} stopped successfully.`
                     );
                     resolve();
                 })
                 .catch((err: Error) => {
+                    this.shouldBeRunning = false; // even if we get an error, we should not be running further
                     logger.error(
                         `Error stopping container ${this.containerName}.`,
                         err
@@ -160,7 +169,7 @@ export default class Script {
     }
 
     @createTimestamps()
-    private removeContainer(): Promise<void> {
+    private removeScript(): Promise<void> {
         logger.info(`Removing container ${this.containerName}.`);
 
         return new Promise((resolve, reject) => {
@@ -172,13 +181,21 @@ export default class Script {
                 if (!err) {
                     container.remove({ v: true, force: true });
                     logger.info(`Container ${this.containerName} removed.`);
+
+                    this.isActive = false;
+                    this.shouldBeRunning = false;
+
                     resolve();
                 } else if (err.message.includes('no such container')) {
+                    this.isActive = false;
+                    this.shouldBeRunning = false;
+
                     logger.error(
                         `Attempting to remove a container ${this.containerName} that does not exist, continuing without error.`,
                         err
                     );
                 } else {
+                    this.shouldBeRunning = false; // even if we get error while removing, it should not be running further
                     logger.error(
                         `Error encountered while removing container ${this.containerName}.`,
                         err
@@ -190,38 +207,39 @@ export default class Script {
     }
 
     start() {
-        if (!this.isActive) {
-            this.runContainer().catch((err) => {
-                logger.error(
-                    `Container ${this.containerName} encountered an error while running.`,
-                    err
-                );
-            });
-
-            this.isActive = true;
+        if (this.shouldBeRunning) {
+            logger.info(`Script ${this.containerName} is already running.`);
+        } else {
+            this.shouldBeRunning = true;
             this.updatedAt = new Date(Date.now());
 
-            logger.info(`Script ${this.containerName} started.`);
-        } else {
-            logger.info(`Script ${this.containerName} was already running.`);
+            const interval = setInterval(() => {
+                if (this.shouldBeRunning) {
+                    if (!this.isActive) {
+                        this.runScript().then(() => {
+                            //TODO: send new data
+                            console.log('new data');
+                            ScriptManager.WS.emit(
+                                'script-msg',
+                                `New data from ${this.containerName}.`
+                            );
+                        });
+                    }
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000 * this.runFreq);
         }
 
         return Promise.resolve(this.scriptId);
     }
 
     stop() {
-        if (this.isActive) {
-            this.stopContainer().catch((err) => {
-                logger.error(
-                    `Container ${this.containerName} encountered an error while stopping.`,
-                    err
-                );
-            });
-
-            this.isActive = false;
+        if (this.shouldBeRunning) {
+            this.shouldBeRunning = false;
             this.updatedAt = new Date(Date.now());
 
-            logger.info(`Script ${this.containerName} stopped.`);
+            this.stopScript();
         } else {
             logger.info(`Script ${this.containerName} was not running.`);
         }
@@ -230,15 +248,7 @@ export default class Script {
     }
 
     remove() {
-        logger.info(`Script ${this.containerName} remove called.`);
-
-        this.removeContainer().catch((err) => {
-            logger.error(
-                `Container ${this.containerName} encountered an error while removing.`,
-                err
-            );
-        });
-
+        this.removeScript();
         return Promise.resolve(this.scriptId);
     }
 }

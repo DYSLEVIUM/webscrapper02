@@ -63,7 +63,7 @@ const main = async () => {
             startExpressServer(),
             ScriptManager.buildImage(),
         ]);
-        await startWSServer(app);
+        ScriptManager.setWS(await startWSServer(app));
     } catch (err) {
         logger.error("Couldn't start server.", err);
     }
