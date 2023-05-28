@@ -19,9 +19,9 @@ export class ExpressServerStartError extends ExpressError {
 }
 
 export class RouteNotFoundError extends ExpressError {
-    constructor(originalUrl: string) {
+    constructor(originalUrl: string, method: string) {
         super(
-            `Route '${originalUrl}' does not exist.`,
+            `Route '${originalUrl}' does not exist for ${method} method.`,
             {},
             'ROUTE_NOT_FOUND',
             404

@@ -15,7 +15,7 @@ export default class ScriptManager {
     @createTimestamps()
     static async buildImage() {
         try {
-            logger.info(`Building Script Image: ${this.imageName}.`);
+            logger.info(`Building script image: ${this.imageName}.`);
 
             await new Promise((resolve, reject) => {
                 DockerManager.docker.buildImage(
@@ -28,9 +28,16 @@ export default class ScriptManager {
                         if (err) {
                             reject(err);
                         } else {
-                            response?.pipe(process.stdout);
+                            // response?.pipe(process.stdout);
+                            response?.on('data', (chunk) => {
+                                const buffer = Buffer.from(chunk);
+                                const stringStream = buffer.toString('utf-8');
+                                // console.log(stringStream);
+                            });
                             response?.on('end', resolve);
-                            logger.info('Script image created.');
+                            logger.info(
+                                `Created script image ${this.imageName}.`
+                            );
                         }
                     }
                 );
@@ -41,8 +48,28 @@ export default class ScriptManager {
         }
     }
 
-    static addScript(name: string, targetPrice: number, keywords: string) {
-        ScriptManager.scripts.push(new Script(name, targetPrice, keywords));
+    static addScript(
+        name: string,
+        targetPrice: number,
+        keywords: string
+    ): Promise<Script> {
+        return new Promise((resolve, reject) => {
+            try {
+                logger.info(
+                    `Creating script with name: ${name}, targetPrice: ${targetPrice}, keywords: ${keywords}.`
+                );
+                const newScript = new Script(name, targetPrice, keywords);
+
+                ScriptManager.scripts.push(newScript);
+                resolve(newScript);
+            } catch (err) {
+                logger.error(
+                    `Error while creating script with name: ${name}, targetPrice: ${targetPrice}, keywords: ${keywords}.`,
+                    err
+                );
+                reject(err);
+            }
+        });
     }
 
     static async startAllScripts() {
@@ -108,9 +135,13 @@ export default class ScriptManager {
     static async removeAllScripts() {
         try {
             logger.info('Removing all scripts.');
-            return await Promise.all(
+
+            const promiseData = await Promise.all(
                 ScriptManager.scripts.map((script) => script.remove())
             );
+            ScriptManager.scripts = [];
+
+            return promiseData;
         } catch (err) {
             logger.error(`Error while removing all scripts.`, err);
             throw err;
@@ -124,7 +155,13 @@ export default class ScriptManager {
                 throw new ScriptNotFoundError({});
             }
             logger.info(`Removing script ${id}.`);
-            return script.remove();
+
+            const promiseData = await script.remove();
+            ScriptManager.scripts = ScriptManager.scripts.filter(
+                (script) => script.scriptId !== id
+            );
+
+            return promiseData;
         } catch (err) {
             logger.error(`Error while removing script ${id}.`, err);
             throw err;

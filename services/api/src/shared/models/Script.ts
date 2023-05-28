@@ -30,9 +30,9 @@ export default class Script {
             ScriptManager.imageName
         }.name-${this.name.replaceAll(/[-.\\w ]/g, '_')}.id-${this.scriptId}`;
 
-        setInterval(() => {
-            this.cleanup();
-        }, 1000 * 5);
+        // setInterval(() => {
+        //     this.cleanup();
+        // }, 1000 * 60);
     }
 
     //! complete it
@@ -71,7 +71,7 @@ export default class Script {
                             [`${Script.containerVolumePath}/logs`]: {},
                         },
                         HostConfig: {
-                            AutoRemove: true,
+                            // AutoRemove: true,
                             // NetworkMode: 'scraps',
                             Binds: [
                                 `${Script.hostVolumePath}/${this.containerName}:${Script.containerVolumePath}`,
@@ -115,10 +115,7 @@ export default class Script {
                         }
 
                         logger.info(
-                            `Script ${this.scriptId} executed successfully.`
-                        );
-                        logger.info(
-                            `Script ${this.scriptId} exited with status code: ${output.StatusCode}.`
+                            `Script ${this.scriptId} executed successfully and exited with status code ${output.StatusCode}.`
                         );
 
                         logger.info(
@@ -193,10 +190,6 @@ export default class Script {
     }
 
     start() {
-        logger.info(`Script ${this.containerName} started.`);
-
-        this.updatedAt = new Date(Date.now());
-
         if (!this.isActive) {
             this.runContainer().catch((err) => {
                 logger.error(
@@ -204,17 +197,19 @@ export default class Script {
                     err
                 );
             });
+
             this.isActive = true;
+            this.updatedAt = new Date(Date.now());
+
+            logger.info(`Script ${this.containerName} started.`);
+        } else {
+            logger.info(`Script ${this.containerName} was already running.`);
         }
 
-        return Promise.resolve();
+        return Promise.resolve(this.scriptId);
     }
 
     stop() {
-        logger.info(`Script ${this.containerName} stop called.`);
-
-        this.updatedAt = new Date(Date.now());
-
         if (this.isActive) {
             this.stopContainer().catch((err) => {
                 logger.error(
@@ -224,9 +219,14 @@ export default class Script {
             });
 
             this.isActive = false;
+            this.updatedAt = new Date(Date.now());
+
+            logger.info(`Script ${this.containerName} stopped.`);
+        } else {
+            logger.info(`Script ${this.containerName} was not running.`);
         }
 
-        return Promise.resolve();
+        return Promise.resolve(this.scriptId);
     }
 
     remove() {
@@ -239,6 +239,6 @@ export default class Script {
             );
         });
 
-        return Promise.resolve();
+        return Promise.resolve(this.scriptId);
     }
 }

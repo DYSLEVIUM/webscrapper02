@@ -1,13 +1,14 @@
-import { Express, Router } from 'express';
+import { Express, Response, Router } from 'express';
 import { authGuard, routeLog } from '../middlewares';
-import { default as scriptRouter } from './script';
+import { APIResponse } from '../shared/interfaces';
+import { default as scriptManagerRouter } from './scriptManager';
 
 const attachPublicRoutes = (router: Router) => {
-    router.get('/', (_req, res) => {
+    router.get('/', (_req, res: Response<APIResponse>) => {
         res.status(200).send({
-            message: 'Welcome to the API',
-            error: null,
+            message: 'Welcome to the API.',
             data: null,
+            error: null,
         });
     });
 
@@ -15,7 +16,7 @@ const attachPublicRoutes = (router: Router) => {
 };
 
 const attachPrivateRoutes = (router: Router) => {
-    router.use('/script', authGuard, scriptRouter);
+    router.use('/scriptManager', authGuard, scriptManagerRouter);
     return router;
 };
 
@@ -23,6 +24,5 @@ export const attachRoutes = (app: Express) => {
     const router = Router();
     attachPublicRoutes(router);
     attachPrivateRoutes(router);
-
     app.use('/api', routeLog, router);
 };

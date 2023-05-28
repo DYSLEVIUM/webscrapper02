@@ -27,7 +27,7 @@ const startExpressServer = async () => {
         attachRoutes(app);
 
         app.use((req: Request, _res: Response, next: NextFunction) =>
-            next(new RouteNotFoundError(req.originalUrl))
+            next(new RouteNotFoundError(req.originalUrl, req.method))
         );
 
         app.use(expressErrorHandler);
@@ -59,16 +59,11 @@ const startWSServer = async (server: http.Server) => {
 
 const main = async () => {
     try {
-        const app = await startExpressServer();
+        const [app] = await Promise.all([
+            startExpressServer(),
+            ScriptManager.buildImage(),
+        ]);
         await startWSServer(app);
-
-        await ScriptManager.buildImage();
-
-        ScriptManager.addScript('Gpu Scrapper 3060', 3000, 'nvidia gpu 3060');
-        ScriptManager.addScript('Gpu Scrapper 2060', 3000, 'nvidia gpu 2060');
-
-        ScriptManager.startAllScripts();
-        ScriptManager.stopAllScripts();
     } catch (err) {
         logger.error("Couldn't start server.", err);
     }
