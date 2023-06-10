@@ -57,4 +57,3 @@ def scrape(fileName: str, target_price: float, keywords: list[str]) -> None:
 
 if __name__ == "__main__":
     scrape(sys.argv[1], float(sys.argv[2]), sys.argv[3:])
-    # print('Done')

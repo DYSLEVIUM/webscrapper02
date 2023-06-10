@@ -1,3 +1,5 @@
+import os
+
 import scrapy
 from scrapy.loader import ItemLoader
 

@@ -6,7 +6,8 @@ services:
     volumes:
       # this directory must be present in the host machine for development as it looks for changes in the files for hot-reloading and calculating diff
       # not giving read-only as we are saving everything in the host machine
-      - ../services/api/script:/usr/app
+      - ../services/script:/usr/app
+
   api:
     build:
       target: dev
@@ -16,3 +17,21 @@ services:
       # this directory must be present in the host machine for development as it looks for changes in the files for hot-reloading and calculating diff
       # not giving read-only as we are saving everything in the host machine
       - ../services/api:/usr/app
+
+  web:
+    build:
+      target: dev
+    env_file:
+      - ../envs/.env.dev
+    # ports:
+    #   - ${WEB_PORT}:${WEB_PORT} # connecting to next server directly
+    volumes:
+      # this directory must be present in the host machine for development as it looks for changes in the files for hot-reloading and calculating diff
+      # not giving read-only as we are saving everything in the host machine
+      - ../services/web:/usr/app
+
+  reverse_proxy:
+    build:
+      target: dev
+    env_file:
+      - ../envs/.env.dev

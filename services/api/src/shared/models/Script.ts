@@ -4,6 +4,8 @@ import { Environment } from '../constants/environments';
 import { createTimestamps } from '../decorators/createTimestamps';
 import { ScriptExecutionError } from '../errors/script';
 import { accessEnv } from '../utils/accessEnv';
+import { getFileContents, removeFileOrFolder } from '../utils/file';
+import { getGmailTransporter } from '../utils/helper';
 import { logger } from '../utils/logger';
 import DockerManager from './DockerManager';
 import ScriptManager from './ScriptManager';
@@ -14,9 +16,14 @@ export default class Script {
     private static readonly containerVolumePath = '/usr/app/data';
     private static readonly hostVolumePath =
         '/usr/app/scrapper/data/api/script/data';
+    private static readonly fileName = 'out';
+    private static readonly fileExt = 'json';
 
     private readonly createdAt: Date;
     private readonly containerName: string;
+
+    private readonly filePath: string;
+    private readonly folderPath: string;
 
     private isActive = false;
     private shouldBeRunning = false;
@@ -32,15 +39,8 @@ export default class Script {
         this.containerName = `img-${
             ScriptManager.imageName
         }.name-${this.name.replaceAll(/[-.\\w ]/g, '_')}.id-${this.scriptId}`;
-
-        // setInterval(() => {
-        //     this.cleanup();
-        // }, 1000 * 60);
-    }
-
-    //! complete it
-    private cleanup() {
-        console.log('clean script', this.containerName);
+        this.folderPath = `/usr/app/data/script/data/${this.containerName}`;
+        this.filePath = `${this.folderPath}/${Script.fileName}.${Script.fileExt}`;
     }
 
     @createTimestamps()
@@ -52,11 +52,19 @@ export default class Script {
             DockerManager.docker
                 .run(
                     ScriptManager.imageName,
-                    ['out', this.targetPrice.toString(), this.keywords],
+                    [
+                        Script.fileName,
+                        this.targetPrice.toString(),
+                        this.keywords,
+                    ],
                     process.stdout,
                     {
                         name: this.containerName,
                         ENV: [
+                            `${Environment.NODE_ENV}=${accessEnv(
+                                Environment.NODE_ENV,
+                                'development'
+                            )}`,
                             `${Environment.ROBOTSTXT_OBEY}=${accessEnv(
                                 Environment.ROBOTSTXT_OBEY,
                                 '0'
@@ -72,14 +80,14 @@ export default class Script {
                         ],
                         Volumes: {
                             [Script.containerVolumePath]: {},
-                            [`${Script.containerVolumePath}/logs`]: {},
+                            [`${Script.containerVolumePath}/log`]: {},
                         },
                         HostConfig: {
                             AutoRemove: true,
                             // NetworkMode: 'scraps',
                             Binds: [
                                 `${Script.hostVolumePath}/${this.containerName}:${Script.containerVolumePath}`,
-                                `${Script.hostVolumePath}/${this.containerName}/logs:${Script.containerVolumePath}/logs`,
+                                `${Script.hostVolumePath}/${this.containerName}/log:${Script.containerVolumePath}/log`,
                             ],
                             // Mounts: [
                             //     {
@@ -190,7 +198,7 @@ export default class Script {
                     this.isActive = false;
                     this.shouldBeRunning = false;
 
-                    logger.error(
+                    logger.info(
                         `Attempting to remove a container ${this.containerName} that does not exist, continuing without error.`,
                         err
                     );
@@ -213,18 +221,55 @@ export default class Script {
             this.shouldBeRunning = true;
             this.updatedAt = new Date(Date.now());
 
+            const intervalFunc = () => {
+                if (!this.isActive) {
+                    this.runScript()
+                        .then(async () => {
+                            try {
+                                const data = await getFileContents(
+                                    this.filePath
+                                );
+                                const identifier = `script_msg_${this.scriptId}`;
+                                ScriptManager.WS.emit(
+                                    identifier,
+                                    JSON.stringify(data)
+                                );
+                                logger.info(`Emitted data to ${identifier}.`);
+
+                                const gmailTransporter =
+                                    await getGmailTransporter();
+                                await gmailTransporter
+                                    .sendMail(
+                                        `(webScrapper02 test) New Items for ${this.keywords} found!`,
+                                        `Found ${data.length} new items.`
+                                        // await Product.exportToCsv(
+                                        //     this.newProductsSet,
+                                        //     './newItems.csv'
+                                        // )
+                                    )
+                                    .catch((err) => {
+                                        logger.error(
+                                            `Error sending email for ${this.scriptId}.`,
+                                            err
+                                        );
+                                    });
+                            } catch (err) {
+                                logger.error(
+                                    `Error occurred while fetching data from file ${this.filePath}.`,
+                                    err
+                                );
+                            }
+                        })
+                        .catch((err) => {
+                            logger.error('error here at start()', err);
+                        });
+                }
+            };
+
+            intervalFunc(); // initial call
             const interval = setInterval(() => {
                 if (this.shouldBeRunning) {
-                    if (!this.isActive) {
-                        this.runScript().then(() => {
-                            //TODO: send new data
-                            console.log('new data');
-                            ScriptManager.WS.emit(
-                                'script-msg',
-                                `New data from ${this.containerName}.`
-                            );
-                        });
-                    }
+                    intervalFunc();
                 } else {
                     clearInterval(interval);
                 }
@@ -239,7 +284,9 @@ export default class Script {
             this.shouldBeRunning = false;
             this.updatedAt = new Date(Date.now());
 
-            this.stopScript();
+            this.stopScript().catch((err) => {
+                logger.error('error here at stop()', err);
+            });
         } else {
             logger.info(`Script ${this.containerName} was not running.`);
         }
@@ -248,7 +295,24 @@ export default class Script {
     }
 
     remove() {
-        this.removeScript();
+        this.removeScript().catch((err) => {
+            logger.error(
+                `Error while removing script ${this.containerName}.`,
+                err
+            );
+        });
+
+        // removeFile(this.filePath).catch((err) => {
+        //     logger.error(`Error while removing file ${this.filePath}.`, err);
+        // });
+
+        removeFileOrFolder(this.folderPath).catch((err) => {
+            logger.error(
+                `Error while removing folder ${this.folderPath}.`,
+                err
+            );
+        });
+
         return Promise.resolve(this.scriptId);
     }
 }

@@ -1,4 +1,4 @@
-import { Response, Router } from 'express';
+import { Request, Response, Router } from 'express';
 import { ExpressError } from '../shared/errors/express';
 import { APIResponse } from '../shared/interfaces';
 import { ScriptManager } from '../shared/models';
@@ -69,18 +69,33 @@ router.post('/start/all', async (_req, res: Response<APIResponse>, next) => {
     }
 });
 
-router.post('/start/:id', async (req, res: Response<APIResponse>, next) => {
-    const id = req.params.id;
-    try {
-        res.status(200).send({
-            message: `Scrapper ${id} started.`,
-            data: await ScriptManager.startScript(id),
-            error: null,
-        });
-    } catch (err) {
-        next(new ExpressError(`Error while starting script ${id}.`, err));
+router.post(
+    '/start/ids',
+    async (
+        req: Request<{}, {}, { ids: string[] }>,
+        res: Response<APIResponse>,
+        next
+    ) => {
+        const ids = req.body.ids;
+
+        try {
+            res.status(200).send({
+                message: `Scrapper ${ids.join(', ')} started.`,
+                data: await Promise.allSettled(
+                    ids.map((id) => ScriptManager.startScript(id))
+                ),
+                error: null,
+            });
+        } catch (err) {
+            next(
+                new ExpressError(
+                    `Error while starting script ${ids.join(', ')}.`,
+                    err
+                )
+            );
+        }
     }
-});
+);
 
 router.post('/stop/all', async (_req, res: Response<APIResponse>, next) => {
     try {
@@ -94,24 +109,39 @@ router.post('/stop/all', async (_req, res: Response<APIResponse>, next) => {
     }
 });
 
-router.post('/stop/:id', async (req, res: Response<APIResponse>, next) => {
-    const id = req.params.id;
-    try {
-        res.status(200).send({
-            message: `Scrapper ${id} stopped.`,
-            data: await ScriptManager.stopScript(id),
-            error: null,
-        });
-    } catch (err) {
-        next(new ExpressError(`Error while stopping scrapper ${id}.`, err));
+router.post(
+    '/stop/ids',
+    async (
+        req: Request<{}, {}, { ids: string[] }>,
+        res: Response<APIResponse>,
+        next
+    ) => {
+        const ids = req.body.ids;
+
+        try {
+            res.status(200).send({
+                message: `Scrapper ${ids.join(', ')} stopped.`,
+                data: await Promise.allSettled(
+                    ids.map((id) => ScriptManager.stopScript(id))
+                ),
+                error: null,
+            });
+        } catch (err) {
+            next(
+                new ExpressError(
+                    `Error while stopping script ${ids.join(', ')}.`,
+                    err
+                )
+            );
+        }
     }
-});
+);
 
 router.get('/all', (_req, res: Response<APIResponse>) => {
     res.status(200).send({
         message: 'All scrappers fetched.',
-        error: null,
         data: ScriptManager.getAllScripts(),
+        error: null,
     });
 });
 
@@ -119,8 +149,8 @@ router.get('/:id', (req, res: Response<APIResponse>) => {
     const id = req.params.id;
     res.status(200).send({
         message: `Scrapper data of ${id} fetched.`,
-        error: null,
         data: ScriptManager.getScript(id) || null,
+        error: null,
     });
 });
 
@@ -136,17 +166,31 @@ router.post('/remove/all', async (_req, res: Response<APIResponse>, next) => {
     }
 });
 
-router.post('/remove/:id', async (req, res: Response<APIResponse>, next) => {
-    const id = req.params.id;
-    try {
-        res.status(200).send({
-            message: `Scrapper ${id} removed.`,
-            data: await ScriptManager.removeScript(id),
-            error: null,
-        });
-    } catch (err) {
-        next(new ExpressError(`Error while removing scrapper ${id}.`, err));
-    }
-});
+router.post(
+    '/remove/ids',
+    async (
+        req: Request<{}, {}, { ids: string[] }>,
+        res: Response<APIResponse>,
+        next
+    ) => {
+        const ids = req.body.ids;
 
+        try {
+            res.status(200).send({
+                message: `Scrapper ${ids.join(', ')} removed.`,
+                data: await Promise.allSettled(
+                    ids.map((id) => ScriptManager.removeScript(id))
+                ),
+                error: null,
+            });
+        } catch (err) {
+            next(
+                new ExpressError(
+                    `Error while removing script ${ids.join(', ')}.`,
+                    err
+                )
+            );
+        }
+    }
+);
 export default router;

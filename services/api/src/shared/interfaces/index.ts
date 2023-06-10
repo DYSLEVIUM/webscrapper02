@@ -1,1 +1,1 @@
-export { default as APIResponse } from './APIResponse';
+export { APIResponse } from './APIResponse';

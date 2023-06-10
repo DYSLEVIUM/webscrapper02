@@ -3,7 +3,7 @@ import { createLogger, format, transports } from 'winston';
 import 'winston-daily-rotate-file';
 import TransportStream from 'winston-transport';
 
-const LOG_PATH = path.join(__dirname, '../../../data/logs');
+const LOG_PATH = path.join(__dirname, '../../../data/log');
 
 const getLogFilePath = (filename: string) => {
     return path.join(LOG_PATH, `api-%DATE%-${filename}.log`);

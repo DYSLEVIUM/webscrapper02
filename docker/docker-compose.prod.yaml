@@ -3,7 +3,22 @@ services:
   script:
     env_file:
       - ../envs/.env.prod
+
   api:
+    build:
+      target: prod
+    env_file:
+      - ../envs/.env.prod
+
+  web:
+    build:
+      target: prod
+    env_file:
+      - ../envs/.env.prod
+    # ports:
+    #   - ${WEB_PORT}:80 # connecting to nginx
+
+  reverse_proxy:
     build:
       target: prod
     env_file:

@@ -28,14 +28,8 @@ COPY . .
 
 RUN apk del .build-deps
 
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
-
-RUN mkdir -p data/log && chown -R nodejs:nodejs /usr/app
-
-VOLUME /usr/app/data
-
-USER nodejs
+RUN addgroup -g 1001 -S nextjs
+RUN adduser -S nextjs -u 1001
 
 CMD ["pnpm", "dev"]
 
@@ -55,29 +49,38 @@ COPY . .
 RUN pnpm build
 
 ## prod
+# FROM nginx:alpine AS prod
+
+# WORKDIR /usr/share/nginx/html
+
+# COPY --from=builder /usr/app/dist .
+# COPY --from=builder /usr/app/next-routes.conf /usr/share/nginx/next-routes.conf
+
+
+# CMD [ "nginx", "-g", "daemon off;" ]
+
 FROM node:alpine AS prod
 
 RUN apk update && apk upgrade
-RUN apk add --no-cache --virtual .build-deps curl libc6-compat \
+RUN apk add --update --no-cache --virtual .build-deps curl libc6-compat \
     && curl -sL https://unpkg.com/@pnpm/self-installer | node
 
 WORKDIR /usr/app
 
-COPY --from=builder /usr/app/dist /usr/app/package.json /usr/app/pnpm-lock.yaml ./
+COPY --from=builder /usr/app/package.json /usr/app/pnpm-lock.yaml ./
+COPY --from=builder /usr/app/.next /usr/app/.next
 
 # ENV NODE_ENV=production
 
 RUN pnpm install --frozen-lockfile --production --ignore-scripts
 
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+RUN addgroup -g 1001 -S nextjs
+RUN adduser -S nextjs -u 1001
 
-RUN mkdir -p data/log && chown -R nodejs:nodejs /usr/app
+RUN chown -R nextjs:nextjs /usr/app/.next
 
 RUN apk del .build-deps
 
-VOLUME /usr/app/data
+USER nextjs
 
-USER nodejs
-
-CMD [ "node", "main.js" ]
+CMD [ "pnpm", "start" ]

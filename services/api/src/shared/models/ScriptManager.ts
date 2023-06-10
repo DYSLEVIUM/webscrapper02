@@ -1,6 +1,10 @@
+import { cp, rm } from 'fs/promises';
+import path from 'node:path';
 import { Server } from 'socket.io';
+import { Environment } from '../constants/environments';
 import { createTimestamps } from '../decorators/createTimestamps';
 import { ScriptNotFoundError } from '../errors/script';
+import { accessEnv } from '../utils/accessEnv';
 import { logger } from '../utils/logger';
 import DockerManager from './DockerManager';
 import Script from './Script';
@@ -15,20 +19,53 @@ export default class ScriptManager {
         return ScriptManager;
     }
 
+    //! implement if needed
+    // static async cleanup() {
+    // }
+
     static setWS(ws: Server) {
         this.WS = ws;
     }
 
+    //! move this to worker thread
     @createTimestamps()
     static async buildImage() {
+        const tmpScriptPath = './scriptTmp';
+
         try {
             logger.info(`Building script image: ${this.imageName}.`);
+
+            //! copying from host to this container (idk why its not taking from the host container 🤷 to the script container inside the api container)
+            const scriptFolderPath =
+                accessEnv(Environment.NODE_ENV, 'development') === 'development'
+                    ? path.resolve(
+                          __dirname,
+                          '..',
+                          '..',
+                          '..',
+                          'data',
+                          'api',
+                          'script'
+                      )
+                    : path.resolve(
+                          __dirname,
+                          '..',
+                          '..',
+                          'data',
+                          'api',
+                          'script'
+                      ); // in prod, we have no src, so one less previous directory is used
+            await cp(scriptFolderPath, tmpScriptPath, { recursive: true }).then(
+                () => {
+                    logger.info(`Created folder ${tmpScriptPath}.`);
+                }
+            );
 
             await new Promise((resolve, reject) => {
                 DockerManager.docker.buildImage(
                     {
-                        context: './script',
-                        src: ['.dockerignore', 'scrapper', 'Dockerfile'],
+                        context: tmpScriptPath,
+                        src: ['.dockerignore', 'scrapper/', 'Dockerfile'],
                     },
                     { t: ScriptManager.imageName },
                     (err, response) => {
@@ -42,16 +79,18 @@ export default class ScriptManager {
                                 // console.log(stringStream);
                             });
                             response?.on('end', resolve);
-                            logger.info(
-                                `Created script image ${this.imageName}.`
-                            );
                         }
                     }
                 );
+            }).then(() => {
+                logger.info(`Created script image ${this.imageName}.`);
             });
         } catch (err) {
             logger.error('Error while building script image.', err);
             throw err;
+        } finally {
+            await rm(tmpScriptPath, { recursive: true });
+            logger.info(`Removed folder ${tmpScriptPath}.`);
         }
     }
 

@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
+import helmet from 'helmet';
 import http from 'node:http';
 import { Server } from 'socket.io';
 import { expressErrorHandler } from './middlewares';
@@ -20,6 +21,7 @@ const startExpressServer = async () => {
         const PORT = parseInt(accessEnv(Environment.API_PORT, '3000'), 10);
         const app = express();
 
+        app.use(helmet());
         app.use(express.json());
         app.use(express.urlencoded({ extended: true }));
         app.use(cors({ origin: (_, cb) => cb(null, true), credentials: true }));
@@ -44,12 +46,32 @@ const startExpressServer = async () => {
 
 const startWSServer = async (server: http.Server) => {
     try {
-        const io = new Server(server);
+        const io = new Server(server, {
+            cors: {
+                // origin: '*',
+                credentials: true,
+            },
+            path: '/socket.io',
+            transports: ['websocket'],
+        });
+
         io.on('connection', (socket) => {
             //TODO: setup later
-            console.log(socket);
-            console.log('a user connected');
+            console.log('A user connected.');
+
+            // setInterval(() => {
+            //     socket.emit('hello', 'hello');
+            // }, 5000);
+
+            // socket.on('hi', () => {
+            //     console.log('rec hi');
+            // });
+
+            socket.on('disconnect', () => {
+                console.log('A user disconnected.');
+            });
         });
+
         logger.info(WSServer.SUCCESSFUL_START);
         return io;
     } catch (err) {
@@ -57,15 +79,28 @@ const startWSServer = async (server: http.Server) => {
     }
 };
 
+const startServers = async () => {
+    try {
+        const server = await startExpressServer();
+        return await startWSServer(server);
+    } catch (err) {
+        logger.error("Couldn't start servers.", err);
+        throw err;
+    }
+};
+
 const main = async () => {
     try {
-        const [app] = await Promise.all([
-            startExpressServer(),
+        const [WS] = await Promise.all([
+            startServers(),
             ScriptManager.buildImage(),
         ]);
-        ScriptManager.setWS(await startWSServer(app));
+        ScriptManager.setWS(WS);
+
+        //! not necessary right now
+        // setInterval(ScriptManager.cleanup, 1000 * 20);
     } catch (err) {
-        logger.error("Couldn't start server.", err);
+        logger.error("Couldn't start app.", err);
     }
 };
 
