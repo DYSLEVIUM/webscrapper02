@@ -47,8 +47,6 @@ export const ProductsWrapperWithSocket = ({
                 latestValidRunNumber,
                 false
             );
-            console.log(runData);
-            console.log(latestValidRunNumber);
             setJsonData(runData.data?.products || []);
         })();
     }, [scriptId, latestValidRunNumber]);
