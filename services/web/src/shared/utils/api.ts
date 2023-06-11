@@ -1,3 +1,4 @@
+import { default as ProductType } from '@/shared/types/Product';
 import { SERVER_URL } from '../constants/default';
 import { APIResponse, Script } from '../types';
 
@@ -12,6 +13,42 @@ export const getScriptData = async (
 
         if (!res.ok) {
             throw new Error(`Failed to fetch script data for ${scriptId}.`);
+        }
+
+        return await res.json();
+    } catch (err) {
+        throw err;
+    }
+};
+
+export const getScriptRunNumberDataSSR = async (
+    scriptId: string,
+    runNumber: number,
+    SSR: boolean = true
+): Promise<APIResponse<{ script: Script; products: ProductType[] }>> => {
+    try {
+        const res = await fetch(
+            (SSR ? SERVER_URL : '') + `/api/pastRunsScriptData/data`,
+            {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ scriptId, runNumber }),
+
+                next: {
+                    revalidate:
+                        process.env.NODE_ENV === 'development' ? 10 : 60,
+                }, //! should use on-demand ISR, but this works
+                // cache: 'only-if-cached',
+            }
+        );
+
+        if (!res.ok) {
+            throw new Error(
+                `Failed to fetch script data for ${scriptId} and runNumber ${runNumber}.`
+            );
         }
 
         return await res.json();

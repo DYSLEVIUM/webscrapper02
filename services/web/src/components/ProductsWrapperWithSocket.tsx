@@ -1,6 +1,8 @@
 'use client';
 
+import { useSocket } from '@/hooks/useSocket';
 import { default as ProductType } from '@/shared/types/Product';
+import { getScriptRunNumberDataSSR } from '@/shared/utils/api';
 import { convert1DTo2d } from '@/shared/utils/helper';
 import {
     Box,
@@ -11,27 +13,66 @@ import {
     Select,
     Text,
 } from '@mantine/core';
-import { Dispatch, SetStateAction, Suspense, useEffect, useState } from 'react';
+import {
+    Dispatch,
+    SetStateAction,
+    Suspense,
+    useCallback,
+    useEffect,
+    useState,
+} from 'react';
 import { Trash } from 'tabler-icons-react';
 import LoadingSpinner from './LoadingSpinner';
 import { Product } from './Product';
 
 const pageSizes = [4, 12, 16, 24, 32];
-export const ProductsWrapper = ({
-    products: products1d,
+export const ProductsWrapperWithSocket = ({
+    scriptId,
+    latestValidRunNumber,
 }: {
-    products: ProductType[];
+    scriptId: string;
+    latestValidRunNumber: number;
 }) => {
+    const [jsonData, setJsonData] = useState<ProductType[]>([]);
     const [products, setProducts] = useState<ProductType[][]>([[]]);
     const [pageSize, setPageSize] = useState<number>(
         pageSizes[pageSizes.length >> 1]
     );
 
     useEffect(() => {
+        // getting initial from latest run
+        (async () => {
+            const runData = await getScriptRunNumberDataSSR(
+                scriptId,
+                latestValidRunNumber,
+                false
+            );
+            console.log(runData);
+            console.log(latestValidRunNumber);
+            setJsonData(runData.data?.products || []);
+        })();
+    }, [scriptId, latestValidRunNumber]);
+
+    const socket = useSocket();
+    const onMessageListener = useCallback((data: string) => {
+        const jsonData = JSON.parse(data) as ProductType[];
+        setJsonData(jsonData);
+    }, []);
+
+    useEffect(() => {
         // doing this for mantine pagination
-        const convertedData = convert1DTo2d(products1d, pageSize);
+        const convertedData = convert1DTo2d(jsonData, pageSize);
         setProducts(convertedData);
-    }, [products1d, pageSize]);
+    }, [jsonData, pageSize]);
+
+    useEffect(() => {
+        const eventString = `script_msg_${scriptId}`;
+        socket.on(eventString, onMessageListener);
+
+        return () => {
+            socket.off(eventString, onMessageListener);
+        };
+    }, [socket, onMessageListener, scriptId]);
 
     const [activePage, setPage] = useState(1);
     const product = products.length ? (

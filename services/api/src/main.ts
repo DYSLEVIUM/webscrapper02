@@ -56,19 +56,14 @@ const startWSServer = async (server: http.Server) => {
         });
 
         io.on('connection', (socket) => {
-            //TODO: setup later
-            console.log('A user connected.');
-
-            // setInterval(() => {
-            //     socket.emit('hello', 'hello');
-            // }, 5000);
-
-            // socket.on('hi', () => {
-            //     console.log('rec hi');
-            // });
+            logger.info(
+                `${socket.handshake.address} connected on ${socket.handshake.time}.`
+            );
 
             socket.on('disconnect', () => {
-                console.log('A user disconnected.');
+                logger.info(
+                    `${socket.handshake.address} disconnected on ${socket.handshake.time}.`
+                );
             });
         });
 

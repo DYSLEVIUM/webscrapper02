@@ -9,4 +9,5 @@ export default interface Script {
     updatedAt: Date;
     createdAt: Date;
     containerName: string;
+    runNumber: number;
 }

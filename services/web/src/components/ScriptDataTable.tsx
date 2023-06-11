@@ -131,15 +131,9 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
     const [page, setPage] = useState(1);
 
     useEffect(() => {
-        // const from = Math.min(
-        //     (page - 1) * pageSize,
-        //     Math.max(sortedScripts.length - pageSize, 0)
-        // );
-        // const to = Math.min(from + pageSize, sortedScripts.length);
-        // setPaginatedScripts(sortedScripts.slice(from, to));
-        setPaginatedScripts(
-            sortedScripts.slice((page - 1) * pageSize, page * pageSize)
-        );
+        const from = (page - 1) * pageSize;
+        const to = page * pageSize;
+        setPaginatedScripts(sortedScripts.slice(from, to));
     }, [sortedScripts, page, pageSize]);
 
     const [modalOpened, { open: modalOpen, close: modalClose }] =
@@ -343,7 +337,7 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                         sortable: true,
                         render: ({ name, scriptId }) => (
                             <Link
-                                href={`/script/${scriptId}`}
+                                href={`/script/${scriptId}/live`}
                                 className='font-bold cursor-pointer w-fit'
                                 target='_blank'
                             >
@@ -621,7 +615,7 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                 }}
                 page={page}
                 onPageChange={(p) => setPage(p)}
-                mih={500}
+                height={initialScripts.length > 5 ? undefined : 500}
                 withBorder
                 borderRadius='sm'
                 shadow='xl'

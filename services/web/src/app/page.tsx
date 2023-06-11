@@ -17,8 +17,10 @@ export default async function Dashboard() {
 
     return (
         <>
-            <h1 className='py-0 pb-8 m-0'>Dashboard</h1>
-            <ScriptDataTable scripts={scripts} />
+            <h1 className='py-0 m-0'>Dashboard</h1>
+            <div>
+                <ScriptDataTable scripts={scripts} />
+            </div>
         </>
     );
 }

@@ -16,18 +16,17 @@ export default class Script {
     private static readonly containerVolumePath = '/usr/app/data';
     private static readonly hostVolumePath =
         '/usr/app/scrapper/data/api/script/data';
-    private static readonly fileName = 'out';
-    private static readonly fileExt = 'json';
 
     private readonly createdAt: Date;
     private readonly containerName: string;
 
-    private readonly filePath: string;
+    // private readonly filePath: string;
     private readonly folderPath: string;
 
     private isActive = false;
     private shouldBeRunning = false;
     private updatedAt: Date;
+    private runNumber: number = 0;
 
     constructor(
         private readonly name: string,
@@ -40,7 +39,34 @@ export default class Script {
             ScriptManager.imageName
         }.name-${this.name.replaceAll(/[-.\\w ]/g, '_')}.id-${this.scriptId}`;
         this.folderPath = `/usr/app/data/script/data/${this.containerName}`;
-        this.filePath = `${this.folderPath}/${Script.fileName}.${Script.fileExt}`;
+    }
+
+    private getRunScriptOutData(
+        fullPathInHost: boolean,
+        runNumber: number,
+        withExt: boolean = true
+    ) {
+        return (
+            (fullPathInHost ? `${this.folderPath}/` : '') +
+            'out_' +
+            runNumber +
+            (withExt ? '.json' : '')
+        );
+    }
+
+    getRunNumber() {
+        return this.runNumber;
+    }
+
+    async getScriptRunData(runNumber: number) {
+        if (
+            runNumber < 1 ||
+            runNumber > this.runNumber - (this.isActive ? 1 : 0)
+        )
+            return [];
+        return (await getFileContents(
+            this.getRunScriptOutData(true, runNumber, true)
+        )) as any[];
     }
 
     @createTimestamps()
@@ -53,7 +79,11 @@ export default class Script {
                 .run(
                     ScriptManager.imageName,
                     [
-                        Script.fileName,
+                        this.getRunScriptOutData(
+                            false,
+                            ++this.runNumber,
+                            false
+                        ),
                         this.targetPrice.toString(),
                         this.keywords,
                     ],
@@ -134,6 +164,7 @@ export default class Script {
                         logger.info(
                             `Container ${this.containerName} ran successfully.`
                         );
+
                         resolve();
                         // return container.remove();
                     }
@@ -226,9 +257,10 @@ export default class Script {
                     this.runScript()
                         .then(async () => {
                             try {
-                                const data = await getFileContents(
-                                    this.filePath
+                                const data = await this.getScriptRunData(
+                                    this.runNumber
                                 );
+
                                 const identifier = `script_msg_${this.scriptId}`;
                                 ScriptManager.WS.emit(
                                     identifier,
@@ -255,7 +287,9 @@ export default class Script {
                                     });
                             } catch (err) {
                                 logger.error(
-                                    `Error occurred while fetching data from file ${this.filePath}.`,
+                                    `Error occurred while fetching data from file ${this.getScriptRunData(
+                                        this.runNumber
+                                    )}.`,
                                     err
                                 );
                             }
@@ -301,10 +335,6 @@ export default class Script {
                 err
             );
         });
-
-        // removeFile(this.filePath).catch((err) => {
-        //     logger.error(`Error while removing file ${this.filePath}.`, err);
-        // });
 
         removeFileOrFolder(this.folderPath).catch((err) => {
             logger.error(
