@@ -1,5 +1,6 @@
 'use client';
 
+import { useScript } from '@/hooks/useScript';
 import { Script } from '@/shared/types';
 import {
     removeAllScripts,
@@ -51,6 +52,11 @@ const PAGE_SIZES = [5, 10, 15, 20, 25];
 export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
     scripts: initialScripts,
 }) => {
+    const { setScript } = useScript();
+    useEffect(() => {
+        setScript(null);
+    }, [setScript]);
+
     const router = useRouter();
 
     const refreshData = useCallback(() => {
@@ -339,7 +345,6 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                             <Link
                                 href={`/script/${scriptId}/live`}
                                 className='font-bold cursor-pointer w-fit'
-                                target='_blank'
                             >
                                 {name}
                             </Link>

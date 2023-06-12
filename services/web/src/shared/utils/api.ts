@@ -37,11 +37,12 @@ export const getScriptRunNumberDataSSR = async (
                 },
                 body: JSON.stringify({ scriptId, runNumber }),
 
-                next: {
-                    revalidate:
-                        process.env.NODE_ENV === 'development' ? 10 : 60,
-                }, //! should use on-demand ISR, but this works
+                // next: {
+                //     revalidate:
+                //         process.env.NODE_ENV === 'development' ? 10 : 60,
+                // }, //! should use on-demand ISR, but this works
                 // cache: 'only-if-cached',
+                cache: 'no-store',
             }
         );
 

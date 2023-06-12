@@ -21,14 +21,10 @@ export default async function ScriptLive({ params }: ScriptProps) {
 
     return (
         <>
-            <h1 className='py-0 m-0'>{scriptFetchData.data.name}</h1>
-            <ProductsWrapperWithSocket
-                scriptId={scriptId}
-                latestValidRunNumber={Math.max(
-                    scriptFetchData.data.runNumber - 1,
-                    1
-                )}
-            />
+            <div className='flex justify-between w-full pr-4'>
+                <h1 className='py-0 m-0'>{scriptFetchData.data.name} (LIVE)</h1>
+            </div>
+            <ProductsWrapperWithSocket script={scriptFetchData.data} />
         </>
     );
 }

@@ -28,9 +28,15 @@ export default async function ScriptPast({ params }: ScriptProps) {
 
     return (
         <>
-            <h1 className='py-0 m-0'>{runData.data.script.name}</h1>
-            <h1 className='py-0 m-0'>{runNumber}</h1>
-            <ProductsWrapper products={runData.data.products} />
+            <div className='flex justify-between w-full pr-4'>
+                <h1 className='py-0 m-0'>
+                    {runData.data.script.name} (Run: {runNumber})
+                </h1>
+            </div>
+            <ProductsWrapper
+                script={runData.data.script}
+                products={runData.data.products}
+            />
         </>
     );
 }

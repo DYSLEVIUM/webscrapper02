@@ -3,6 +3,7 @@
 import { Notifications } from '@mantine/notifications';
 import { ColorSchemeProviderWrapper } from './ColorSchemeProviderWrapper';
 import { MantineProviderWrapper } from './MantineProviderWrapper';
+import { ScriptProvider } from './ScriptProvider';
 import { SocketProvider } from './SocketProvider';
 import { SpotlightProviderWrapper } from './SpotlightProviderWrapper';
 
@@ -18,7 +19,9 @@ export const ContextProviders: React.FC<ContextProvidersProps> = ({
             <ColorSchemeProviderWrapper>
                 <MantineProviderWrapper>
                     <SpotlightProviderWrapper>
-                        <SocketProvider>{children}</SocketProvider>
+                        <SocketProvider>
+                            <ScriptProvider>{children}</ScriptProvider>
+                        </SocketProvider>
                     </SpotlightProviderWrapper>
                     <Notifications limit={5} autoClose={5000} />
                 </MantineProviderWrapper>

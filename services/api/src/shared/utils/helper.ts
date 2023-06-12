@@ -12,3 +12,9 @@ export const getGmailTransporter = async () => {
 
     return await new GmailTransporter(sender, password, receivers);
 };
+
+export const setDifference = <T>(setA: T[], setB: T[]): T[] => {
+    return setA.filter(
+        (itemA) => !setB.some((itemB) => (itemA as any).equals(itemB))
+    );
+};

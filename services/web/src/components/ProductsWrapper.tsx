@@ -1,5 +1,7 @@
 'use client';
 
+import { useScript } from '@/hooks/useScript';
+import { Script } from '@/shared/types';
 import { default as ProductType } from '@/shared/types/Product';
 import { convert1DTo2d } from '@/shared/utils/helper';
 import {
@@ -18,10 +20,17 @@ import { Product } from './Product';
 
 const pageSizes = [4, 12, 16, 24, 32];
 export const ProductsWrapper = ({
+    script,
     products: products1d,
 }: {
+    script: Script;
     products: ProductType[];
 }) => {
+    const { setScript } = useScript();
+    useEffect(() => {
+        setScript(script);
+    }, [script, setScript]);
+
     const [products, setProducts] = useState<ProductType[][]>([[]]);
     const [pageSize, setPageSize] = useState<number>(
         pageSizes[pageSizes.length >> 1]

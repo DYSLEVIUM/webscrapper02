@@ -5,9 +5,10 @@ import { createTimestamps } from '../decorators/createTimestamps';
 import { ScriptExecutionError } from '../errors/script';
 import { accessEnv } from '../utils/accessEnv';
 import { getFileContents, removeFileOrFolder } from '../utils/file';
-import { getGmailTransporter } from '../utils/helper';
+import { getGmailTransporter, setDifference } from '../utils/helper';
 import { logger } from '../utils/logger';
 import DockerManager from './DockerManager';
+import { Product } from './Product';
 import ScriptManager from './ScriptManager';
 
 export default class Script {
@@ -20,7 +21,6 @@ export default class Script {
     private readonly createdAt: Date;
     private readonly containerName: string;
 
-    // private readonly filePath: string;
     private readonly folderPath: string;
 
     private isActive = false;
@@ -58,15 +58,48 @@ export default class Script {
         return this.runNumber;
     }
 
-    async getScriptRunData(runNumber: number) {
-        if (
-            runNumber < 1 ||
-            runNumber > this.runNumber - (this.isActive ? 1 : 0)
-        )
-            return [];
-        return (await getFileContents(
-            this.getRunScriptOutData(true, runNumber, true)
-        )) as any[];
+    async getScriptRunData(runNumber: number): Promise<Product[]> {
+        if (runNumber > this.runNumber - (this.isActive ? 1 : 0)) return [];
+        try {
+            if (runNumber === 1) {
+                return await getFileContents(
+                    this.getRunScriptOutData(true, 1, true)
+                );
+            }
+
+            const [currProductsSet, prevProductsSet] = await Promise.all([
+                (await getFileContents(
+                    this.getRunScriptOutData(true, runNumber, true)
+                )) as Product[],
+                (await getFileContents(
+                    this.getRunScriptOutData(true, runNumber - 1, true)
+                )) as Product[],
+            ]);
+
+            // we need to realize the instances before we use them
+            const currProductsSetRealized = currProductsSet.map(
+                (product) => new Product(product)
+            );
+            const prevProductsSetRealized = prevProductsSet.map(
+                (product) => new Product(product)
+            );
+
+            const differenceSet = setDifference<Product>(
+                currProductsSetRealized,
+                prevProductsSetRealized
+            );
+
+            if (!differenceSet.length) {
+                return [];
+            }
+            return differenceSet;
+        } catch (err) {
+            logger.error(
+                `Error occurred while getting script run data for ${this.scriptId} and runNumber ${runNumber}.`,
+                err
+            );
+            throw err;
+        }
     }
 
     @createTimestamps()
@@ -272,12 +305,14 @@ export default class Script {
                                     await getGmailTransporter();
                                 await gmailTransporter
                                     .sendMail(
-                                        `(webScrapper02 test) New Items for ${this.keywords} found!`,
-                                        `Found ${data.length} new items.`
-                                        // await Product.exportToCsv(
-                                        //     this.newProductsSet,
-                                        //     './newItems.csv'
-                                        // )
+                                        `(webScrapper02) New Items for ${this.keywords} found!`,
+                                        `Found ${data.length} new items.`,
+                                        [
+                                            await Product.exportToCsv(
+                                                data,
+                                                `./newItems_${this.runNumber}.csv`
+                                            ),
+                                        ]
                                     )
                                     .catch((err) => {
                                         logger.error(
@@ -287,9 +322,7 @@ export default class Script {
                                     });
                             } catch (err) {
                                 logger.error(
-                                    `Error occurred while fetching data from file ${this.getScriptRunData(
-                                        this.runNumber
-                                    )}.`,
+                                    `Error occurred while doing difference and sending email.`,
                                     err
                                 );
                             }

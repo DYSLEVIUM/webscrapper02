@@ -1,6 +1,8 @@
 'use client';
 
+import { useScript } from '@/hooks/useScript';
 import { useSocket } from '@/hooks/useSocket';
+import { Script } from '@/shared/types';
 import { default as ProductType } from '@/shared/types/Product';
 import { getScriptRunNumberDataSSR } from '@/shared/utils/api';
 import { convert1DTo2d } from '@/shared/utils/helper';
@@ -26,36 +28,39 @@ import LoadingSpinner from './LoadingSpinner';
 import { Product } from './Product';
 
 const pageSizes = [4, 12, 16, 24, 32];
-export const ProductsWrapperWithSocket = ({
-    scriptId,
-    latestValidRunNumber,
-}: {
-    scriptId: string;
-    latestValidRunNumber: number;
-}) => {
+export const ProductsWrapperWithSocket = ({ script }: { script: Script }) => {
+    const { setScript } = useScript();
+
     const [jsonData, setJsonData] = useState<ProductType[]>([]);
     const [products, setProducts] = useState<ProductType[][]>([[]]);
     const [pageSize, setPageSize] = useState<number>(
         pageSizes[pageSizes.length >> 1]
     );
 
+    const updateScript = useCallback(async () => {
+        const runData = await getScriptRunNumberDataSSR(
+            script.scriptId,
+            Math.max(script.runNumber - 1, 1),
+            false
+        );
+
+        setScript(runData.data?.script!);
+        setJsonData(runData.data?.products || []);
+    }, [script.scriptId, script.runNumber, setScript]);
+
     useEffect(() => {
-        // getting initial from latest run
-        (async () => {
-            const runData = await getScriptRunNumberDataSSR(
-                scriptId,
-                latestValidRunNumber,
-                false
-            );
-            setJsonData(runData.data?.products || []);
-        })();
-    }, [scriptId, latestValidRunNumber]);
+        updateScript();
+    }, [updateScript]);
 
     const socket = useSocket();
-    const onMessageListener = useCallback((data: string) => {
-        const jsonData = JSON.parse(data) as ProductType[];
-        setJsonData(jsonData);
-    }, []);
+    const onMessageListener = useCallback(
+        async (data: string) => {
+            const jsonData = JSON.parse(data) as ProductType[];
+            setJsonData(jsonData);
+            await updateScript();
+        },
+        [updateScript]
+    );
 
     useEffect(() => {
         // doing this for mantine pagination
@@ -64,13 +69,13 @@ export const ProductsWrapperWithSocket = ({
     }, [jsonData, pageSize]);
 
     useEffect(() => {
-        const eventString = `script_msg_${scriptId}`;
+        const eventString = `script_msg_${script.scriptId}`;
         socket.on(eventString, onMessageListener);
 
         return () => {
             socket.off(eventString, onMessageListener);
         };
-    }, [socket, onMessageListener, scriptId]);
+    }, [socket, onMessageListener, script.scriptId]);
 
     const [activePage, setPage] = useState(1);
     const product = products.length ? (

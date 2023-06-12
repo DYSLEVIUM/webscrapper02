@@ -1,3 +1,4 @@
+'use client';
 import { Center } from '@mantine/core';
 
 export const Status = ({ state }: { state: boolean }) => {

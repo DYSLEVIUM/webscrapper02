@@ -1,15 +1,28 @@
 'use client';
 
+import { useScript } from '@/hooks/useScript';
 import { routes } from '@/shared/constants/routes';
-import { Group, Navbar, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
+import { Script } from '@/shared/types';
+import {
+    Accordion,
+    Button,
+    Group,
+    Navbar,
+    ScrollArea,
+    Text,
+    ThemeIcon,
+    UnstyledButton,
+} from '@mantine/core';
 import Link from 'next/link';
-import { GitPullRequest } from 'tabler-icons-react';
+import { GitPullRequest, LiveView } from 'tabler-icons-react';
 
 interface NavbarWrapperProps {
     opened: boolean;
 }
 
 export const NavbarWrapper: React.FC<NavbarWrapperProps> = ({ opened }) => {
+    const { script } = useScript();
+
     return (
         <Navbar
             p='xs'
@@ -18,8 +31,8 @@ export const NavbarWrapper: React.FC<NavbarWrapperProps> = ({ opened }) => {
             hiddenBreakpoint='md'
             hidden={!opened}
         >
-            <Navbar.Section grow>
-                <MainLinks />
+            <Navbar.Section grow component={ScrollArea}>
+                <Links script={script} />
             </Navbar.Section>
         </Navbar>
     );
@@ -39,7 +52,7 @@ function MainLink({ icon, color, label, link }: MainLinkProps) {
                 sx={(theme) => ({
                     display: 'block',
                     width: '100%',
-                    padding: theme.spacing.xl,
+                    padding: theme.spacing.sm,
                     borderRadius: theme.radius.sm,
                     color:
                         theme.colorScheme === 'dark'
@@ -75,12 +88,59 @@ const data = [
     },
 ];
 
-function MainLinks() {
+function Links({ script }: { script: Script | null }) {
     return (
         <div>
             {data.map((link) => (
                 <MainLink {...link} key={link.label} />
             ))}
+
+            {script && (
+                <>
+                    <MainLink
+                        icon={<LiveView size='1rem' />}
+                        color='green'
+                        label={'Live Updates'}
+                        link={`/script/${script.scriptId}/live`}
+                        key={'navLink' + script.scriptId + '_live'}
+                    />
+
+                    <Accordion defaultValue='pastData'>
+                        <Accordion.Item value='pastData'>
+                            <Accordion.Control>Past Data</Accordion.Control>
+                            <Accordion.Panel>
+                                <div className='flex flex-wrap'>
+                                    {Array.from({
+                                        length: script.runNumber - 1,
+                                    }).map((_, idx) => (
+                                        <Button
+                                            key={
+                                                'navLink' +
+                                                script.scriptId +
+                                                idx
+                                            }
+                                            variant='outline'
+                                            color='orange'
+                                            m='sm'
+                                            w='fit'
+                                        >
+                                            <Link
+                                                href={`/script/${
+                                                    script.scriptId
+                                                }/past/${
+                                                    script.runNumber - 1 - idx
+                                                }`}
+                                            >
+                                                {script.runNumber - 1 - idx}
+                                            </Link>
+                                        </Button>
+                                    ))}
+                                </div>
+                            </Accordion.Panel>
+                        </Accordion.Item>
+                    </Accordion>
+                </>
+            )}
         </div>
     );
 }
