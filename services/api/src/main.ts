@@ -57,12 +57,14 @@ const startWSServer = async (server: http.Server) => {
 
         io.on('connection', (socket) => {
             logger.info(
-                `${socket.handshake.address} connected on ${socket.handshake.time}.`
+                // `${socket.handshake.address} connected on ${socket.handshake.time}.`
+                `${socket.request.socket.remoteAddress} connected on ${socket.handshake.time}.`
             );
 
             socket.on('disconnect', () => {
                 logger.info(
-                    `${socket.handshake.address} disconnected on ${socket.handshake.time}.`
+                    // `${socket.handshake.address} disconnected on ${socket.handshake.time}.`
+                    `${socket.request.socket.remoteAddress} disconnected on ${socket.handshake.time}.`
                 );
             });
         });
