@@ -200,7 +200,6 @@ export default class Script {
                             Docker.Container
                         ]
                     ) => {
-                        ++this.runNumber;
                         var [output, container] = data;
 
                         if (output.Error) {
@@ -379,6 +378,7 @@ export default class Script {
                                             );
                                         });
                                 }
+                                ++this.runNumber; // updating runNumber here, not the actual runNumber but is to keep track of the files data runNumber
                             } catch (err) {
                                 logger.error(
                                     `Error occurred while doing difference and sending email.`,
