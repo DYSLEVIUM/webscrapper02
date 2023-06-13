@@ -55,20 +55,13 @@ export const ProductsWrapper = ({
 
     return (
         <Suspense fallback={<LoadingSpinner />}>
-            <Group position='apart' mb='md'>
-                <Pagination
-                    mt='md'
-                    value={activePage}
-                    onChange={setPage}
-                    total={products.length}
-                    siblings={1}
-                    withEdges
-                    withControls
-                    size='sm'
-                    className='w-fit'
-                />
-                <PageSelect pageSize={pageSize} setPageSize={setPageSize} />
-            </Group>
+            <PaginationGroup
+                activePage={activePage}
+                setPage={setPage}
+                products={products}
+                pageSize={pageSize}
+                setPageSize={setPage}
+            />
             <Box
                 sx={() => ({
                     transition: 'all 250ms ease',
@@ -92,20 +85,13 @@ export const ProductsWrapper = ({
                     )}
                 </Paper>
             </Box>
-            <Group position='apart' mt='md'>
-                <Pagination
-                    mt='md'
-                    value={activePage}
-                    onChange={setPage}
-                    total={products1d.length}
-                    siblings={1}
-                    withEdges
-                    withControls
-                    size='sm'
-                    className='w-fit'
-                />
-                <PageSelect pageSize={pageSize} setPageSize={setPageSize} />
-            </Group>
+            <PaginationGroup
+                activePage={activePage}
+                setPage={setPage}
+                products={products}
+                pageSize={pageSize}
+                setPageSize={setPage}
+            />
         </Suspense>
     );
 };
@@ -137,5 +123,36 @@ const PageSelect = ({
             maxDropdownHeight={200}
             maw={75}
         />
+    );
+};
+
+const PaginationGroup = ({
+    activePage,
+    setPage,
+    products,
+    pageSize,
+    setPageSize,
+}: {
+    activePage: number;
+    setPage: Dispatch<SetStateAction<number>>;
+    products: ProductType[][];
+    pageSize: number;
+    setPageSize: Dispatch<SetStateAction<number>>;
+}) => {
+    return (
+        <Group position='apart' mt='md'>
+            <Pagination
+                mt='md'
+                value={activePage}
+                onChange={setPage}
+                total={products.length}
+                siblings={1}
+                withEdges
+                withControls
+                size='sm'
+                className='w-fit'
+            />
+            <PageSelect pageSize={pageSize} setPageSize={setPageSize} />
+        </Group>
     );
 };
