@@ -47,7 +47,9 @@ router.post(
                 message: `Scrapper ${scriptId} run data fetched.`,
                 data: {
                     script,
-                    products: await script.getScriptRunData(Number(runNumber)),
+                    products: await script.getScriptDiffFromRunNumber(
+                        Number(runNumber)
+                    ),
                 },
                 error: null,
             });

@@ -113,27 +113,27 @@ function Links({ script }: { script: Script | null }) {
                                     {Array.from({
                                         length: script.runNumber - 1,
                                     }).map((_, idx) => (
-                                        <Button
+                                        <Link
                                             key={
                                                 'navLink' +
                                                 script.scriptId +
                                                 idx
                                             }
-                                            variant='outline'
-                                            color='orange'
-                                            m='sm'
-                                            w='fit'
+                                            href={`/script/${
+                                                script.scriptId
+                                            }/past/${
+                                                script.runNumber - 1 - idx
+                                            }`}
                                         >
-                                            <Link
-                                                href={`/script/${
-                                                    script.scriptId
-                                                }/past/${
-                                                    script.runNumber - 1 - idx
-                                                }`}
+                                            <Button
+                                                variant='outline'
+                                                color='orange'
+                                                m='sm'
+                                                w='fit'
                                             >
                                                 {script.runNumber - 1 - idx}
-                                            </Link>
-                                        </Button>
+                                            </Button>
+                                        </Link>
                                     ))}
                                 </div>
                             </Accordion.Panel>

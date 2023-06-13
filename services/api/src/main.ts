@@ -86,11 +86,10 @@ const startServers = async () => {
 
 const main = async () => {
     try {
-        const [WS] = await Promise.all([
-            startServers(),
-            ScriptManager.buildImage(),
-        ]);
-        ScriptManager.setWS(WS);
+        await ScriptManager.buildImage();
+
+        const ws = await startServers();
+        ScriptManager.setWS(ws);
 
         //! not necessary right now
         // setInterval(ScriptManager.cleanup, 1000 * 20);

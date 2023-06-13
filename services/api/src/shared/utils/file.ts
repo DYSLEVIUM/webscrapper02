@@ -10,7 +10,7 @@ const checkFileOrFolderExists = async (path: string) => {
         await access(path, constants.F_OK);
         return true;
     } catch (err) {
-        logger.error(`File/Folder ${path} does not exist.`, err);
+        logger.info(`File/Folder ${path} does not exist.`, err);
         return false;
     }
 };
@@ -22,6 +22,14 @@ export const getFileContents = async (filePath: string) => {
         return await JSON.parse(data);
     } catch (err) {
         logger.error(`Error reading file ${filePath}.`, err);
+    }
+};
+
+export const writeDataToFile = async (filePath: string, data: any) => {
+    try {
+        await writeFile(filePath, JSON.stringify(data), 'utf-8');
+    } catch (err) {
+        logger.error(`Error writing data to file ${filePath}.`, err);
     }
 };
 
@@ -67,7 +75,7 @@ export const writeCsvFile = async <T>(filePath: string, rows: T[]) => {
             )
             .join('\n');
 
-        logger.info(`Writing ${rows.length} to ${filePath}.`);
+        logger.info(`Writing ${rows.length} items to ${filePath}.`);
         await writeFile(filePath, data);
 
         return filePath;

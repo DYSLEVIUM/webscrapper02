@@ -28,17 +28,17 @@ def scrape(fileName: str, target_price: float, keywords: list[str]) -> None:
             'overwrite': True
         },
         
-        f'../data/{fileName}.csv': {
-            'format': 'csv',
-            'encoding': 'utf8',
-            'store_empty': False,
-            # 'item_classes': [MyItemClass1, 'myproject.items.MyItemClass2'],
-            'fields': None,
-            'item_export_kwargs': {
-                'export_empty_fields': True,
-            },
-            'overwrite': True
-        },
+        # f'../data/{fileName}.csv': {
+        #     'format': 'csv',
+        #     'encoding': 'utf8',
+        #     'store_empty': False,
+        #     # 'item_classes': [MyItemClass1, 'myproject.items.MyItemClass2'],
+        #     'fields': None,
+        #     'item_export_kwargs': {
+        #         'export_empty_fields': True,
+        #     },
+        #     'overwrite': True
+        # },
     }
 
     process = CrawlerProcess(settings)

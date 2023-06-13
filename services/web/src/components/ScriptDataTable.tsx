@@ -496,7 +496,6 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                                                 const data = await startScripts(
                                                     [scriptId]
                                                 );
-                                                console.log(data);
                                                 refreshData();
                                                 successToast(
                                                     `Script ${name} started.`,
@@ -528,7 +527,6 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                                                 const data = await stopScripts([
                                                     scriptId,
                                                 ]);
-                                                console.log(data);
                                                 refreshData();
                                                 successToast(
                                                     `Script ${name} stopped.`,
@@ -559,7 +557,6 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                                                     await removeScripts([
                                                         scriptId,
                                                     ]);
-                                                console.log(data);
                                                 refreshData();
                                                 successToast(
                                                     `Removed script ${name}.`,

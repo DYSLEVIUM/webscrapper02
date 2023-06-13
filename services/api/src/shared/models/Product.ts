@@ -1,5 +1,6 @@
 import { IProduct } from '../interfaces';
 import { writeCsvFile } from '../utils/file';
+import { logger } from '../utils/logger';
 
 export class Product implements IProduct {
     condition: string;
@@ -25,11 +26,11 @@ export class Product implements IProduct {
     equals(other: Product): boolean {
         return (
             this.condition === other.condition &&
-            this.link === other.link &&
+            // this.link === other.link
             this.name === other.name &&
-            this.price === other.price &&
-            this.quantity_available === other.quantity_available &&
-            this.shipping_price === other.shipping_price
+            this.price === other.price
+            // this.quantity_available === other.quantity_available &&
+            // this.shipping_price === other.shipping_price
         );
     }
 
@@ -49,7 +50,8 @@ export class Product implements IProduct {
                 let formattedValue: string;
 
                 if (value === null) {
-                    formattedValue = 'Null,'; // Convert null
+                    // formattedValue = 'Null,'; // Convert null
+                    formattedValue = 'Null'; // Convert null
                 } else if (typeof value === 'string') {
                     // formattedValue = `"${value}"`; // Enclose string in double quotes if it contains a comma
                     // formattedValue = `"${value.replace(/"/g, '""')}"`; // Escape double quotes within the string
@@ -58,6 +60,8 @@ export class Product implements IProduct {
                     } else {
                         formattedValue = value;
                     }
+                } else if (Array.isArray(value)) {
+                    formattedValue = value.join(';'); // Join array elements with a delimiter (e.g., semicolon)
                 } else {
                     formattedValue = String(value);
                 }
@@ -71,6 +75,8 @@ export class Product implements IProduct {
 
         // Prepend the headings to the data array
         const dataWithHeadings = [headings, ...productData];
+
+        logger.info('Writing data to CSV to send.');
 
         return await writeCsvFile(filePath, dataWithHeadings);
     }

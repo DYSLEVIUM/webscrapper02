@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import path from 'path';
+import { removeFileOrFolder } from '../utils/file';
 import { logger } from '../utils/logger';
 
 export abstract class MailTransporter {
@@ -42,12 +43,21 @@ export abstract class MailTransporter {
             throw new Error('Sending mail before transporter is initialized');
         }
 
-        await this.transporter.sendMail(mailOptions, (err, info) => {
-            if (err) throw err;
-            logger.info(
-                `Email sent from ${this.sender} to ${this.receivers} with response: ${info.response}.`
-            );
-        });
+        return await this.transporter.sendMail(
+            mailOptions,
+            async (err, info) => {
+                if (err) throw err;
+                logger.info(
+                    `Email sent from ${this.sender} to ${this.receivers} with response: ${info.response}.`
+                );
+
+                await Promise.all(
+                    attachmentPaths.map((attachmentPath) =>
+                        removeFileOrFolder(attachmentPath)
+                    )
+                ); // remove all the attachments after sending
+            }
+        );
     }
 }
 

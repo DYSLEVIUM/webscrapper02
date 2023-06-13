@@ -4,7 +4,11 @@ import { Environment } from '../constants/environments';
 import { createTimestamps } from '../decorators/createTimestamps';
 import { ScriptExecutionError } from '../errors/script';
 import { accessEnv } from '../utils/accessEnv';
-import { getFileContents, removeFileOrFolder } from '../utils/file';
+import {
+    getFileContents,
+    removeFileOrFolder,
+    writeDataToFile,
+} from '../utils/file';
 import { getGmailTransporter, setDifference } from '../utils/helper';
 import { logger } from '../utils/logger';
 import DockerManager from './DockerManager';
@@ -41,16 +45,25 @@ export default class Script {
         this.folderPath = `/usr/app/data/script/data/${this.containerName}`;
     }
 
-    private getRunScriptOutData(
-        fullPathInHost: boolean,
-        runNumber: number,
+    private getRunScriptOutDataPath(
+        hostMachine: boolean = true,
+        containerScript: boolean = false,
         withExt: boolean = true
     ) {
         return (
-            (fullPathInHost ? `${this.folderPath}/` : '') +
-            'out_' +
-            runNumber +
+            (hostMachine ? `${this.folderPath}/` : '') +
+            'out' +
+            (containerScript ? '_script' : '') +
             (withExt ? '.json' : '')
+        );
+    }
+
+    private getRunScriptNewDataPath(
+        runNumber: number,
+        withJsonExt: boolean = true
+    ) {
+        return (
+            `${this.folderPath}/new_${runNumber}.` + (withJsonExt ? 'json' : '')
         );
     }
 
@@ -58,29 +71,26 @@ export default class Script {
         return this.runNumber;
     }
 
-    async getScriptRunData(runNumber: number): Promise<Product[]> {
-        if (runNumber > this.runNumber - (this.isActive ? 1 : 0)) return [];
+    private async calculateDiff(): Promise<Product[]> {
         try {
-            if (runNumber === 1) {
-                return await getFileContents(
-                    this.getRunScriptOutData(true, 1, true)
-                );
+            if (this.runNumber === 1) {
+                return (await getFileContents(
+                    this.getRunScriptOutDataPath(true, true, true)
+                )) as Product[];
             }
 
-            const [currProductsSet, prevProductsSet] = await Promise.all([
-                (await getFileContents(
-                    this.getRunScriptOutData(true, runNumber, true)
-                )) as Product[],
-                (await getFileContents(
-                    this.getRunScriptOutData(true, runNumber - 1, true)
-                )) as Product[],
-            ]);
+            const prevJSONFileData = (await getFileContents(
+                this.getRunScriptOutDataPath(true, false, true)
+            )) as Product[];
+            const currJSONFileData = (await getFileContents(
+                this.getRunScriptOutDataPath(true, true, true)
+            )) as Product[];
 
             // we need to realize the instances before we use them
-            const currProductsSetRealized = currProductsSet.map(
+            const prevProductsSetRealized = prevJSONFileData.map(
                 (product) => new Product(product)
             );
-            const prevProductsSetRealized = prevProductsSet.map(
+            const currProductsSetRealized = currJSONFileData.map(
                 (product) => new Product(product)
             );
 
@@ -95,7 +105,25 @@ export default class Script {
             return differenceSet;
         } catch (err) {
             logger.error(
-                `Error occurred while getting script run data for ${this.scriptId} and runNumber ${runNumber}.`,
+                `Error occurred while calculating script data diff for ${this.scriptId}.`,
+                err
+            );
+            throw err;
+        }
+    }
+
+    async getScriptDiffFromRunNumber(runNumber: number) {
+        if (runNumber > this.runNumber - (this.isActive ? 1 : 0)) return [];
+        try {
+            logger.info(
+                `Reading data for diff of ${this.scriptId} for ${this.runNumber}.`
+            );
+            return await getFileContents(
+                this.getRunScriptNewDataPath(runNumber, true)
+            );
+        } catch (err) {
+            logger.error(
+                `Error while fetching diff data for script ${this.scriptId} and runNumber ${runNumber}.`,
                 err
             );
             throw err;
@@ -112,11 +140,7 @@ export default class Script {
                 .run(
                     ScriptManager.imageName,
                     [
-                        this.getRunScriptOutData(
-                            false,
-                            ++this.runNumber,
-                            false
-                        ),
+                        this.getRunScriptOutDataPath(false, true, false),
                         this.targetPrice.toString(),
                         this.keywords,
                     ],
@@ -176,7 +200,7 @@ export default class Script {
                             Docker.Container
                         ]
                     ) => {
-                        this.isActive = false;
+                        ++this.runNumber;
                         var [output, container] = data;
 
                         if (output.Error) {
@@ -290,42 +314,80 @@ export default class Script {
                     this.runScript()
                         .then(async () => {
                             try {
-                                const data = await this.getScriptRunData(
-                                    this.runNumber
-                                );
+                                const data = await this.calculateDiff();
 
-                                const identifier = `script_msg_${this.scriptId}`;
-                                ScriptManager.WS.emit(
-                                    identifier,
-                                    JSON.stringify(data)
-                                );
-                                logger.info(`Emitted data to ${identifier}.`);
+                                logger.info(`Found ${data.length} new items.`);
 
-                                const gmailTransporter =
-                                    await getGmailTransporter();
-                                await gmailTransporter
-                                    .sendMail(
-                                        `(webScrapper02) New Items for ${this.keywords} found!`,
-                                        `Found ${data.length} new items.`,
-                                        [
-                                            await Product.exportToCsv(
-                                                data,
-                                                `./newItems_${this.runNumber}.csv`
-                                            ),
-                                        ]
-                                    )
-                                    .catch((err) => {
-                                        logger.error(
-                                            `Error sending email for ${this.scriptId}.`,
-                                            err
-                                        );
-                                    });
+                                if (data.length) {
+                                    const identifier = `script_msg_${this.scriptId}`;
+                                    ScriptManager.WS.emit(
+                                        identifier,
+                                        JSON.stringify(data)
+                                    );
+                                    logger.info(
+                                        `Emitted data to ${identifier}.`
+                                    );
+
+                                    const prevData =
+                                        this.runNumber === 1
+                                            ? []
+                                            : ((await getFileContents(
+                                                  this.getRunScriptOutDataPath(
+                                                      true,
+                                                      false,
+                                                      true
+                                                  )
+                                              )) as Product[]);
+
+                                    const newData = [...prevData, ...data];
+                                    await writeDataToFile(
+                                        this.getRunScriptOutDataPath(
+                                            true,
+                                            false,
+                                            true
+                                        ),
+                                        newData
+                                    ); // overwriting with new Data in out.json
+
+                                    await writeDataToFile(
+                                        this.getRunScriptNewDataPath(
+                                            this.runNumber
+                                        ),
+                                        data
+                                    ); // making new file to write in new_${this.runNumber}.json
+
+                                    const gmailTransporter =
+                                        await getGmailTransporter();
+                                    await gmailTransporter
+                                        .sendMail(
+                                            `(Web Scrapper 2.0) New Items for ${this.keywords} and runNumber ${this.runNumber} found!`,
+                                            `Found ${data.length} new items.`,
+                                            [
+                                                await Product.exportToCsv(
+                                                    data,
+                                                    this.getRunScriptNewDataPath(
+                                                        this.runNumber,
+                                                        false
+                                                    ) + 'csv'
+                                                ),
+                                            ]
+                                        )
+                                        .catch((err) => {
+                                            logger.error(
+                                                `Error sending email for ${this.scriptId}.`,
+                                                err
+                                            );
+                                        });
+                                }
                             } catch (err) {
                                 logger.error(
                                     `Error occurred while doing difference and sending email.`,
                                     err
                                 );
                             }
+                        })
+                        .then(() => {
+                            this.isActive = false;
                         })
                         .catch((err) => {
                             logger.error('error here at start()', err);

@@ -95,7 +95,6 @@ export function CreateScriptForm({ style, closeModal }: CreateScriptFormProps) {
                     `Successfully created script.`,
                     `The ${name} script was created successfully.`
                 );
-                console.log(data);
                 refreshData();
             } catch (err: any) {
                 errorToast(
