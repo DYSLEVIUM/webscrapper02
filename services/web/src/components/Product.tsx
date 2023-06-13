@@ -8,10 +8,12 @@ import {
     Card as MantineCard,
     Spoiler,
     Text,
+    useMantineTheme,
 } from '@mantine/core';
 // import Image from 'next/image';
 
 import { default as ProductType } from '@/shared/types/Product';
+import { useMediaQuery } from '@mantine/hooks';
 import { useState } from 'react';
 import { ExternalLink } from 'tabler-icons-react';
 
@@ -32,19 +34,24 @@ export const Product: React.FC<ProductProps> = ({ product }) => {
 
     const [isLoadingImage, setIsLoadingImage] = useState(true);
 
+    const theme = useMantineTheme();
+    const mobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
+
     return (
         <MantineCard shadow='sm' padding='lg' radius='md' withBorder h={'100%'}>
             <MantineCard.Section>
                 <Carousel
-                    maw={500}
-                    mx='auto'
                     withIndicators
                     height={250}
                     loop
                     slideGap='sm'
+                    maw={mobile ? 330 : 500}
                 >
                     {image_links.map((image_link) => (
-                        <Carousel.Slide key={image_link} className='relative'>
+                        <Carousel.Slide
+                            key={image_link}
+                            className='relative overflow-clip'
+                        >
                             {/* <Image
                                 src={image_link}
                                 // fill
