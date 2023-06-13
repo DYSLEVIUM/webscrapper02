@@ -132,7 +132,7 @@ export const ProductsWrapperWithSocket = ({ script }: { script: Script }) => {
                     mt='md'
                     value={activePage}
                     onChange={setPage}
-                    total={products.length}
+                    total={jsonData.length}
                     siblings={1}
                     withEdges
                     withControls

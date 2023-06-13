@@ -97,7 +97,7 @@ export const ProductsWrapper = ({
                     mt='md'
                     value={activePage}
                     onChange={setPage}
-                    total={products.length}
+                    total={products1d.length}
                     siblings={1}
                     withEdges
                     withControls
