@@ -78,6 +78,10 @@ export const ProductsWrapperWithSocket = ({ script }: { script: Script }) => {
     }, [socket, onMessageListener, script.scriptId]);
 
     const [activePage, setPage] = useState(1);
+    useEffect(() => {
+        setPage(1);
+    }, [pageSize]);
+
     const product = products.length ? (
         products[activePage - 1].map((product) => (
             <Grid.Col xl={3} lg={4} sm={6} xs={12} key={product.link}>
