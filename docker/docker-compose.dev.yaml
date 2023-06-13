@@ -31,7 +31,5 @@ services:
       - ../services/web:/usr/app
 
   reverse_proxy:
-    build:
-      target: dev
     env_file:
       - ../envs/.env.dev
