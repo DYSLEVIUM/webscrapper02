@@ -30,7 +30,7 @@ export default class Script {
     private isActive = false;
     private shouldBeRunning = false;
     private updatedAt: Date;
-    private runNumber: number = 0;
+    private runNumber: number = 1;
 
     constructor(
         private readonly name: string,
