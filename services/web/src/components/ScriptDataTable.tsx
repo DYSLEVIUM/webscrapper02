@@ -456,7 +456,7 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                                         onClick={(ev) => {
                                             ev.stopPropagation();
                                             void router.push(
-                                                `/script/${scriptId}`
+                                                `/script/${scriptId}/live`
                                             );
                                         }}
                                     >
