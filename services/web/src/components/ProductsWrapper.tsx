@@ -13,7 +13,7 @@ import {
     Select,
     Text,
 } from '@mantine/core';
-import { Dispatch, SetStateAction, Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Trash } from 'tabler-icons-react';
 import LoadingSpinner from './LoadingSpinner';
 import { Product } from './Product';
@@ -40,16 +40,13 @@ export const ProductsWrapper = ({
         // doing this for mantine pagination
         const convertedData = convert1DTo2d(products1d, pageSize);
         setProducts(convertedData);
+        setPage(1);
     }, [products1d, pageSize]);
 
     const [activePage, setPage] = useState(1);
-    useEffect(() => {
-        setPage(1);
-    }, [pageSize]);
-
     const product = products.length ? (
         products[activePage - 1].map((product) => (
-            <Grid.Col xl={3} lg={4} sm={6} xs={12} key={product.link}>
+            <Grid.Col xl={3} lg={4} md={6} sm={6} xs={6} key={product.link}>
                 <Product product={product} />
             </Grid.Col>
         ))
@@ -59,17 +56,44 @@ export const ProductsWrapper = ({
 
     return (
         <Suspense fallback={<LoadingSpinner />}>
-            <PaginationGroup
-                activePage={activePage}
-                setPage={setPage}
-                products={products}
-                pageSize={pageSize}
-                setPageSize={setPage}
-            />
+            <Group position='apart' my='md'>
+                <Pagination
+                    mt='md'
+                    value={activePage}
+                    onChange={setPage}
+                    total={products.length}
+                    siblings={1}
+                    withEdges
+                    withControls
+                    size='sm'
+                    className='w-fit'
+                />
+
+                <Select
+                    label='Page size'
+                    placeholder='Pick one'
+                    defaultValue='15'
+                    value={pageSize.toString()}
+                    data={pageSizes.map((pageSize) => {
+                        return {
+                            value: pageSize.toString(),
+                            label: pageSize.toString(),
+                        };
+                    })}
+                    onChange={(newPageSize) => {
+                        setPageSize(Number(newPageSize));
+                    }}
+                    size='sm'
+                    className='w-fit'
+                    maxDropdownHeight={200}
+                    maw={75}
+                />
+            </Group>
             <Box
                 sx={() => ({
                     transition: 'all 250ms ease',
                 })}
+                mb='md'
             >
                 <Paper
                     p='md'
@@ -89,74 +113,39 @@ export const ProductsWrapper = ({
                     )}
                 </Paper>
             </Box>
-            <PaginationGroup
-                activePage={activePage}
-                setPage={setPage}
-                products={products}
-                pageSize={pageSize}
-                setPageSize={setPage}
-            />
+            <Group position='apart' my='md'>
+                <Pagination
+                    mt='md'
+                    value={activePage}
+                    onChange={setPage}
+                    total={products.length}
+                    siblings={1}
+                    withEdges
+                    withControls
+                    size='sm'
+                    className='w-fit'
+                />
+
+                <Select
+                    label='Page size'
+                    placeholder='Pick one'
+                    defaultValue='15'
+                    value={pageSize.toString()}
+                    data={pageSizes.map((pageSize) => {
+                        return {
+                            value: pageSize.toString(),
+                            label: pageSize.toString(),
+                        };
+                    })}
+                    onChange={(newPageSize) => {
+                        setPageSize(Number(newPageSize));
+                    }}
+                    size='sm'
+                    className='w-fit'
+                    maxDropdownHeight={200}
+                    maw={75}
+                />
+            </Group>
         </Suspense>
-    );
-};
-
-const PageSelect = ({
-    pageSize,
-    setPageSize,
-}: {
-    pageSize: Number;
-    setPageSize: Dispatch<SetStateAction<number>>;
-}) => {
-    return (
-        <Select
-            label='Page size'
-            placeholder='Pick one'
-            defaultValue='15'
-            value={pageSize.toString()}
-            data={pageSizes.map((pageSize) => {
-                return {
-                    value: pageSize.toString(),
-                    label: pageSize.toString(),
-                };
-            })}
-            onChange={(newPageSize) => {
-                setPageSize(Number(newPageSize));
-            }}
-            size='sm'
-            className='w-fit'
-            maxDropdownHeight={200}
-            maw={75}
-        />
-    );
-};
-
-const PaginationGroup = ({
-    activePage,
-    setPage,
-    products,
-    pageSize,
-    setPageSize,
-}: {
-    activePage: number;
-    setPage: Dispatch<SetStateAction<number>>;
-    products: ProductType[][];
-    pageSize: number;
-    setPageSize: Dispatch<SetStateAction<number>>;
-}) => {
-    return (
-        <Group position='apart' mt='md'>
-            <Pagination
-                mt='md'
-                value={activePage}
-                onChange={setPage}
-                total={products.length}
-                siblings={1}
-                withEdges
-                withControls
-                size='sm'
-                className='w-fit'
-            />
-            <PageSelect pageSize={pageSize} setPageSize={setPageSize} />
-        </Group>
     );
 };

@@ -377,8 +377,8 @@ export default class Script {
                                                 err
                                             );
                                         });
+                                    ++this.runNumber; // updating runNumber here, not the actual runNumber but is to keep track of the files data runNumber
                                 }
-                                ++this.runNumber; // updating runNumber here, not the actual runNumber but is to keep track of the files data runNumber
                             } catch (err) {
                                 logger.error(
                                     `Error occurred while doing difference and sending email.`,
