@@ -19,6 +19,8 @@ export default async function ScriptLive({ params }: ScriptProps) {
         notFound();
     }
 
+    console.log('runData', scriptFetchData);
+
     return (
         <>
             <div className='flex justify-between w-full pr-4'>

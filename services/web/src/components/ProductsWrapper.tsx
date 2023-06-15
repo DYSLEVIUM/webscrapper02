@@ -44,9 +44,9 @@ export const ProductsWrapper = ({
     }, [products1d, pageSize]);
 
     const [activePage, setPage] = useState(1);
-    const product = products.length ? (
+    const product = products[activePage - 1].length ? (
         products[activePage - 1].map((product) => (
-            <Grid.Col xl={3} lg={4} md={6} sm={6} xs={6} key={product.link}>
+            <Grid.Col lg={4} md={6} sm={6} xs={6} key={product.link}>
                 <Product product={product} />
             </Grid.Col>
         ))

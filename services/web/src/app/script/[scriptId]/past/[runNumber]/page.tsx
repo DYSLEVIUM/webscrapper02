@@ -26,6 +26,8 @@ export default async function ScriptPast({ params }: ScriptProps) {
         notFound();
     }
 
+    console.log('runData', runData);
+
     return (
         <>
             <div className='flex justify-between w-full pr-4'>

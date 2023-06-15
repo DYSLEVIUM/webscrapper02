@@ -60,6 +60,7 @@ export const ProductsWrapperWithSocket = ({ script }: { script: Script }) => {
         const convertedData = convert1DTo2d(jsonData, pageSize);
         setProducts(convertedData);
         setPage(1);
+        console.log('convertedData', convertedData);
     }, [jsonData, pageSize]);
 
     useEffect(() => {
@@ -74,7 +75,7 @@ export const ProductsWrapperWithSocket = ({ script }: { script: Script }) => {
     const [activePage, setPage] = useState(1);
     const product = products.length ? (
         products[activePage - 1].map((product) => (
-            <Grid.Col xl={3} lg={4} md={6} sm={6} xs={6} key={product.link}>
+            <Grid.Col lg={4} md={6} sm={6} xs={6} key={product.link}>
                 <Product product={product} />
             </Grid.Col>
         ))
