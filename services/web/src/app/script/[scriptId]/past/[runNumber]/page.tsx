@@ -1,6 +1,8 @@
 import { ProductsWrapper } from '@/components/ProductsWrapper';
 import { getScriptRunNumberDataSSR } from '@/shared/utils/api';
+import { LoadingOverlay } from '@mantine/core';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 
 interface ScriptProps {
     params: { scriptId: string; runNumber: number };
@@ -26,10 +28,10 @@ export default async function ScriptPast({ params }: ScriptProps) {
         notFound();
     }
 
-    console.log('runData', runData);
+    console.log('runData', JSON.stringify(runData));
 
     return (
-        <>
+        <Suspense fallback={<LoadingOverlay visible />}>
             <div className='flex justify-between w-full pr-4'>
                 <h1 className='py-0 m-0'>
                     {runData.data.script.name} (Run: {runNumber})
@@ -39,6 +41,6 @@ export default async function ScriptPast({ params }: ScriptProps) {
                 script={runData.data.script}
                 products={runData.data.products}
             />
-        </>
+        </Suspense>
     );
 }
