@@ -27,8 +27,6 @@ export default async function ScriptPast({ params }: ScriptProps) {
         notFound();
     }
 
-    console.log('runData', JSON.stringify(runData));
-
     return (
         <Suspense fallback={<>Loading</>}>
             <div className='flex justify-between w-full pr-4'>

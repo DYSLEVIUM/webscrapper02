@@ -6,6 +6,7 @@ import { Script } from '@/shared/types';
 import {
     Accordion,
     Button,
+    Flex,
     Group,
     Navbar,
     ScrollArea,
@@ -109,7 +110,7 @@ function Links({ script }: { script: Script | null }) {
                         <Accordion.Item value='pastData'>
                             <Accordion.Control>Past Data</Accordion.Control>
                             <Accordion.Panel>
-                                <div className='flex flex-wrap'>
+                                <Flex wrap='wrap'>
                                     {Array.from({
                                         length: script.runNumber - 1,
                                     }).map((_, idx) => (
@@ -124,18 +125,18 @@ function Links({ script }: { script: Script | null }) {
                                             }/past/${
                                                 script.runNumber - 1 - idx
                                             }`}
+                                            className='m-[12px]'
                                         >
                                             <Button
                                                 variant='outline'
                                                 color='orange'
-                                                m='sm'
                                                 w='fit'
                                             >
                                                 {script.runNumber - 1 - idx}
                                             </Button>
                                         </Link>
                                     ))}
-                                </div>
+                                </Flex>
                             </Accordion.Panel>
                         </Accordion.Item>
                     </Accordion>

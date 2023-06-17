@@ -8,6 +8,7 @@ import { getScriptRunNumberDataSSR } from '@/shared/utils/api';
 import { convert1DTo2d } from '@/shared/utils/helper';
 import {
     Box,
+    Center,
     Grid,
     Group,
     Pagination,
@@ -73,15 +74,18 @@ export const ProductsWrapperWithSocket = ({ script }: { script: Script }) => {
     }, [socket, onMessageListener, script.scriptId]);
 
     const [activePage, setPage] = useState(1);
-    const product = products.length ? (
-        products[activePage - 1].map((product) => (
-            <Grid.Col lg={4} md={6} sm={6} xs={6} key={product.link}>
-                <Product product={product} />
-            </Grid.Col>
-        ))
-    ) : (
-        <></>
-    );
+
+    const [product, setProduct] = useState([<></>]);
+    useEffect(() => {
+        setProduct(
+            products[activePage - 1].map((product) => (
+                <Grid.Col lg={4} md={6} sm={6} xs={6} key={product.link}>
+                    <Product product={product} />
+                </Grid.Col>
+            ))
+        );
+        console.log('product', product);
+    }, [products, activePage]);
 
     return (
         <Suspense fallback={<LoadingSpinner />}>
@@ -130,10 +134,10 @@ export const ProductsWrapperWithSocket = ({ script }: { script: Script }) => {
                     shadow='md'
                 >
                     {!products || products.length === 0 ? (
-                        <>
+                        <Center>
                             <Trash />
                             <Text h='100%'>No New Items</Text>
-                        </>
+                        </Center>
                     ) : (
                         <>
                             <Grid gutter='xl'>{product}</Grid>
