@@ -215,7 +215,7 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                                 } else {
                                     const data = await startScripts(
                                         selectedScripts.map(
-                                            (script) => script.name
+                                            (script) => script.scriptId
                                         )
                                     );
                                     refreshData();
