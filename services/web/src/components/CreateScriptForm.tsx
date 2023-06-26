@@ -5,9 +5,9 @@ import {
     Box,
     Button,
     Group,
-    MultiSelect,
     NumberInput,
     Paper,
+    Select,
     TextInput,
     Tooltip,
     useMantineTheme,
@@ -161,7 +161,7 @@ export function CreateScriptForm({ style, closeModal }: CreateScriptFormProps) {
                         mt='md'
                     />
 
-                    <MultiSelect
+                    <Select
                         label='Condition'
                         description='Select the condition, leave empty for, any match.'
                         {...form.getInputProps('condition')}
