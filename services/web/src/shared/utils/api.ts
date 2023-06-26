@@ -206,13 +206,17 @@ export const removeScripts = async (ids: string[]) => {
 
 export const createScript = async ({
     name,
-    targetPrice,
+    targetPriceMin,
+    targetPriceMax,
     keywords,
+    condition,
     runFreq,
 }: {
     name: string;
-    targetPrice: number;
+    targetPriceMin: number;
+    targetPriceMax: number;
     keywords: string;
+    condition: string;
     runFreq: number;
 }) => {
     try {
@@ -222,7 +226,14 @@ export const createScript = async ({
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ name, targetPrice, keywords, runFreq }),
+            body: JSON.stringify({
+                name,
+                targetPriceMin,
+                targetPriceMax,
+                keywords,
+                condition,
+                runFreq,
+            }),
             cache: 'no-store',
         });
 

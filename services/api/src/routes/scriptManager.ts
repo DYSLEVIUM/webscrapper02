@@ -16,15 +16,25 @@ router.get('/', (_req, res: Response<APIResponse>) => {
 // we have to call next, if the function is async so that it doesn't lead to unhandled promise rejections
 
 router.post('/create', async (req, res: Response<APIResponse>, next) => {
-    const { name, targetPrice, keywords, runFreq } = req.body;
+    const {
+        name,
+        condition,
+        targetPriceMin,
+        targetPriceMax,
+        keywords,
+        runFreq,
+    } = req.body;
 
     if (
         !name ||
         name === '' ||
         !keywords ||
         keywords === '' ||
-        !targetPrice ||
-        isNaN(targetPrice) ||
+        !targetPriceMin ||
+        isNaN(targetPriceMin) ||
+        !targetPriceMax ||
+        isNaN(targetPriceMax) ||
+        Number(targetPriceMin) > Number(targetPriceMax) ||
         !runFreq ||
         isNaN(runFreq)
     ) {
@@ -41,7 +51,9 @@ router.post('/create', async (req, res: Response<APIResponse>, next) => {
             message: 'Scrapper started.',
             data: await ScriptManager.addScript(
                 name,
-                parseFloat(targetPrice),
+                parseFloat(targetPriceMin),
+                parseFloat(targetPriceMax),
+                condition,
                 keywords,
                 parseFloat(runFreq)
             ),
@@ -50,7 +62,7 @@ router.post('/create', async (req, res: Response<APIResponse>, next) => {
     } catch (err) {
         next(
             new ExpressError(
-                `Error while running scrapper for keywords: "${keywords}" and Target Price: $${targetPrice}.`,
+                `Error while running scrapper for keywords: "${keywords}" and Target Price: $${targetPriceMin} - ${targetPriceMax}.`,
                 err
             )
         );

@@ -96,18 +96,22 @@ export default class ScriptManager {
 
     static addScript(
         name: string,
-        targetPrice: number,
+        targetPriceMin: number,
+        targetPriceMax: number,
+        condition: string,
         keywords: string,
         runFeq: number
     ): Promise<Script> {
         return new Promise((resolve, reject) => {
             try {
                 logger.info(
-                    `Creating script with name: ${name}, targetPrice: ${targetPrice}, keywords: ${keywords}.`
+                    `Creating script with name: ${name}, targetPrice: ${targetPriceMin} - ${targetPriceMax}, keywords: ${keywords}.`
                 );
                 const newScript = new Script(
                     name,
-                    targetPrice,
+                    targetPriceMin,
+                    targetPriceMax,
+                    condition,
                     keywords,
                     runFeq
                 );
@@ -116,7 +120,7 @@ export default class ScriptManager {
                 resolve(newScript);
             } catch (err) {
                 logger.error(
-                    `Error while creating script with name: ${name}, targetPrice: ${targetPrice}, keywords: ${keywords}.`,
+                    `Error while creating script with name: ${name}, targetPrice: ${targetPriceMin} - ${targetPriceMax}, keywords: ${keywords}.`,
                     err
                 );
                 reject(err);

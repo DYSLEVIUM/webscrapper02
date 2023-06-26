@@ -2,6 +2,7 @@
 
 import { useScript } from '@/hooks/useScript';
 import { Script } from '@/shared/types';
+import { allConditionTypes } from '@/shared/types/Script';
 import {
     removeAllScripts,
     removeScripts,
@@ -18,6 +19,7 @@ import {
     Flex,
     Menu,
     Modal,
+    MultiSelect,
     Paper,
     Stack,
     Text,
@@ -34,6 +36,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
     Dots,
     Eye,
+    FileSearch,
     HandStop,
     PlayerPlay,
     Plus,
@@ -71,10 +74,11 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
     const [createdAtSearchRange, setCreatedAtSearchRange] =
         useState<DatesRangeValue>();
     const [debouncedQuery] = useDebouncedValue(query, 200);
+    const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
 
     useEffect(() => {
         setFilteredScripts(
-            initialScripts.filter(({ name, createdAt }) => {
+            initialScripts.filter(({ name, createdAt, condition }) => {
                 if (
                     debouncedQuery !== '' &&
                     !name
@@ -102,10 +106,23 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                     return false;
                 }
 
+                if (
+                    condition &&
+                    selectedConditions.length &&
+                    !selectedConditions.some((d) => d === condition)
+                ) {
+                    return false;
+                }
+
                 return true;
             })
         );
-    }, [initialScripts, createdAtSearchRange, debouncedQuery]);
+    }, [
+        initialScripts,
+        createdAtSearchRange,
+        selectedConditions,
+        debouncedQuery,
+    ]);
 
     // sorting
     const [sortedScripts, setSortedScripts] = useState(filteredScripts);
@@ -291,9 +308,10 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                                 } else {
                                     const data = await removeScripts(
                                         selectedScripts.map(
-                                            (script) => script.name
+                                            (script) => script.scriptId
                                         )
                                     );
+                                    setSelectedScripts([]);
                                     refreshData();
                                     successToast(
                                         'Scripts removed.',
@@ -364,12 +382,36 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                         filtering: query !== '',
                     },
                     {
-                        title: <Text>Target Price ($)</Text>,
+                        title: <Text>Condition</Text>,
+                        textAlignment: 'left',
+                        width: 180,
+                        accessor: 'condition',
+                        sortable: true,
+                        render: ({ condition }) =>
+                            condition ? condition : 'Any Condition',
+                        filter: (
+                            <MultiSelect
+                                label='Conditions'
+                                description='Show all scripts of the selected conditions'
+                                data={allConditionTypes}
+                                value={selectedConditions}
+                                placeholder='Search conditions…'
+                                onChange={setSelectedConditions}
+                                icon={<FileSearch size={16} />}
+                                clearable
+                                searchable
+                            />
+                        ),
+                        filtering: selectedConditions.length > 0,
+                    },
+                    {
+                        title: <Text>Target Price</Text>,
                         textAlignment: 'right',
                         width: 180,
                         accessor: 'targetPrice',
-                        sortable: true,
-                        render: ({ targetPrice }) => `${targetPrice}`,
+                        // sortable: true,
+                        render: ({ targetPriceMin, targetPriceMax }) =>
+                            `$${targetPriceMin} - $${targetPriceMax}`,
                     },
                     {
                         title: <Text>Run Frequency (s)</Text>,

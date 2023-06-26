@@ -13,14 +13,17 @@ class EbayScrapperSpider(scrapy.Spider):
     def __parse_keywords(self, keywords: list[str]) -> str:
         return "+".join(keywords)
 
-    def __init__(self, keywords, target_price, **kwargs):
+    def __init__(self, keywords, target_price_min, target_price_max, condition, **kwargs):
         super(EbayScrapperSpider, self).__init__(**kwargs)
 
-        keywords = keywords.split(" ")
-        self.parsed_keywords = self.__parse_keywords(keywords)
-        self.target_price = float(target_price)
+        self.target_price_min = float(target_price_min)
+        self.target_price_max = float(target_price_max)
+        self.keywords = keywords.split(" ")
+        self.condition = condition.split(" ")
 
-        url = f"https://ebay.com/sch/i.html?_from=R40&_nkw={self.parsed_keywords}&sacat=0&rt=nc&_ipg=240"
+        self.parsed_keywords = self.__parse_keywords(self.keywords)
+
+        # url = f"https://ebay.com/sch/i.html?_from=R40&_nkw={self.parsed_keywords}&sacat=0&rt=nc&_ipg=240"
 
         self.start_urls = [url]
 
@@ -70,4 +73,35 @@ class EbayScrapperSpider(scrapy.Spider):
             image_links.append(link)
         item.add_value("image_links", image_links)
 
+        # filter for name exact match
+        name = item.get_output_value("name")
+        if not(self.__exact_match_keywords(name)):
+            return
+
+        # filter for price range
+        price = float(item.get_output_value("price"))
+        if not(self.target_price_min <= price <= self.target_price_max):
+            return
+        
+        # filter for condition
+        condition = item.get_output_value("condition")
+        if not(self.__match_condition(condition)):
+            return
+
         yield item.load_item()
+
+    def __exact_match_keywords(self, name: str) -> bool:
+        for keyword in self.keywords:
+            if keyword.lower() in name.lower():
+                return True
+        return False
+    
+    def __match_condition(self, product_condition: str) -> bool:
+        if self.condition == ['']: # get any match
+            return True
+
+        for condition in self.condition:
+            if condition.lower() in product_condition.lower():
+                return True
+
+        return False

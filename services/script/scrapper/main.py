@@ -6,7 +6,7 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 
 
-def scrape(fileName: str, target_price: float, keywords: list[str]) -> None:
+def scrape(fileName: str, target_price_min: float, target_price_max: float, condition: str, keywords: str) -> None:
     # don't do anything if we have no keywords
     if len(keywords) == 0:
         return
@@ -44,8 +44,10 @@ def scrape(fileName: str, target_price: float, keywords: list[str]) -> None:
     process = CrawlerProcess(settings)
 
     args = {
-        "keywords": " ".join(keywords),
-        "target_price": target_price,
+        "keywords": keywords,
+        "target_price_min": target_price_min,
+        "target_price_max": target_price_max,
+        "condition": condition
     }
 
     # Add your Spider to the process with the arguments
@@ -56,4 +58,4 @@ def scrape(fileName: str, target_price: float, keywords: list[str]) -> None:
 
 
 if __name__ == "__main__":
-    scrape(sys.argv[1], float(sys.argv[2]), sys.argv[3:])
+    scrape(sys.argv[1], float(sys.argv[2]), float(sys.argv[3]), sys.argv[4], sys.argv[5])

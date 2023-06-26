@@ -34,7 +34,9 @@ export default class Script {
 
     constructor(
         private readonly name: string,
-        private targetPrice: number,
+        private targetPriceMin: number,
+        private targetPriceMax: number,
+        private condition: string,
         private keywords: string,
         private runFreq: number
     ) {
@@ -116,7 +118,7 @@ export default class Script {
         if (runNumber > this.runNumber - (this.isActive ? 1 : 0)) return [];
         try {
             logger.info(
-                `Reading data for diff of ${this.scriptId} for ${this.runNumber}.`
+                `Reading data for diff of ${this.scriptId} for runNumber ${this.runNumber}.`
             );
             return await getFileContents(
                 this.getRunScriptNewDataPath(runNumber, true)
@@ -141,7 +143,9 @@ export default class Script {
                     ScriptManager.imageName,
                     [
                         this.getRunScriptOutDataPath(false, true, false),
-                        this.targetPrice.toString(),
+                        this.targetPriceMin.toString(),
+                        this.targetPriceMax.toString(),
+                        this.condition,
                         this.keywords,
                     ],
                     process.stdout,

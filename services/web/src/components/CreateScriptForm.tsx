@@ -1,9 +1,11 @@
+import { allConditionTypes } from '@/shared/types/Script';
 import { createScript } from '@/shared/utils/api';
 import { errorToast, successToast } from '@/shared/utils/toast';
 import {
     Box,
     Button,
     Group,
+    MultiSelect,
     NumberInput,
     Paper,
     TextInput,
@@ -13,7 +15,7 @@ import {
 import { hasLength, useForm } from '@mantine/form';
 import { useRouter } from 'next/navigation';
 import React, { useCallback } from 'react';
-import { AlertCircle, Clock, Coin } from 'tabler-icons-react';
+import { AlertCircle, Clock, Coin, FileSearch } from 'tabler-icons-react';
 
 const rightSection = (label: string) => {
     return (
@@ -42,8 +44,10 @@ export function CreateScriptForm({ style, closeModal }: CreateScriptFormProps) {
     const form = useForm({
         initialValues: {
             name: '',
-            targetPrice: 0,
+            targetPriceMin: 0,
+            targetPriceMax: 300,
             keywords: '',
+            condition: '',
             runFreq: 600,
         },
 
@@ -53,9 +57,28 @@ export function CreateScriptForm({ style, closeModal }: CreateScriptFormProps) {
                 { min: 3 },
                 'Enter a keyword of minimum length 3.'
             ),
-            targetPrice: (val) => {
-                if (typeof val !== 'number' || isNaN(val) || Number(val) < 0)
+            targetPriceMin: (val, values) => {
+                if (
+                    typeof val !== 'number' ||
+                    isNaN(val) ||
+                    Number(val) < 0 ||
+                    Number(val) > 10000
+                )
                     return 'Enter a valid number.';
+                if (Number(val) > Number(values.targetPriceMax))
+                    return 'Minimum price cannot be greater that maximum price.';
+                return null;
+            },
+            targetPriceMax: (val, values) => {
+                if (
+                    typeof val !== 'number' ||
+                    isNaN(val) ||
+                    Number(val) > 10000 ||
+                    Number(val) < 0
+                )
+                    return 'Enter a valid number.';
+                if (Number(val) < Number(values.targetPriceMax))
+                    return 'Maximum price cannot be smaller that minimum price.';
                 return null;
             },
             runFreq: (val) => {
@@ -75,20 +98,26 @@ export function CreateScriptForm({ style, closeModal }: CreateScriptFormProps) {
     const handleSubmit = useCallback(
         async ({
             name,
-            targetPrice,
+            targetPriceMin,
+            targetPriceMax,
             keywords,
+            condition,
             runFreq,
         }: {
             name: string;
-            targetPrice: number;
+            targetPriceMin: number;
+            targetPriceMax: number;
             keywords: string;
+            condition: string;
             runFreq: number;
         }) => {
             try {
                 const data = await createScript({
                     name,
-                    targetPrice,
+                    targetPriceMin,
+                    targetPriceMax,
                     keywords,
+                    condition,
                     runFreq,
                 });
                 successToast(
@@ -132,10 +161,23 @@ export function CreateScriptForm({ style, closeModal }: CreateScriptFormProps) {
                         mt='md'
                     />
 
+                    <MultiSelect
+                        label='Condition'
+                        description='Select the condition, leave empty for, any match.'
+                        {...form.getInputProps('condition')}
+                        placeholder='Conditions…'
+                        data={allConditionTypes}
+                        icon={<FileSearch size={16} />}
+                        clearable
+                        searchable
+                    />
+                </Group>
+
+                <Group grow>
                     <NumberInput
                         withAsterisk
-                        label='Target Price'
-                        placeholder='Enter Target Price'
+                        label='Target Price Minimum'
+                        placeholder='Enter Target Price Minimum'
                         description='Please enter the target price (minimum = 0)'
                         // min={0}
                         step={1}
@@ -144,7 +186,23 @@ export function CreateScriptForm({ style, closeModal }: CreateScriptFormProps) {
                         precision={2}
                         decimalSeparator='.'
                         icon={<Coin size='1rem' />}
-                        {...form.getInputProps('targetPrice')}
+                        {...form.getInputProps('targetPriceMin')}
+                        size='sm'
+                        mt='md'
+                    />
+                    <NumberInput
+                        withAsterisk
+                        label='Target Price Maximum'
+                        placeholder='Enter Target Price Maximum'
+                        description='Please enter the target price (maximum = 10,000)'
+                        // min={0}
+                        step={1}
+                        stepHoldDelay={500}
+                        stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
+                        precision={2}
+                        decimalSeparator='.'
+                        icon={<Coin size='1rem' />}
+                        {...form.getInputProps('targetPriceMax')}
                         size='sm'
                         mt='md'
                     />

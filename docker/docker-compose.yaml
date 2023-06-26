@@ -23,7 +23,7 @@ services:
       - scraps
     volumes:
       - /usr/app/scrapper/data/script:/usr/app/data
-      - /usr/app/scrapper/data/script/log:/usr/app/data
+      - /usr/app/scrapper/data/script/log:/usr/app/data/log
 
   api:
     container_name: api
