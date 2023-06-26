@@ -23,7 +23,7 @@ class EbayScrapperSpider(scrapy.Spider):
 
         self.parsed_keywords = self.__parse_keywords(self.keywords)
 
-        # url = f"https://ebay.com/sch/i.html?_from=R40&_nkw={self.parsed_keywords}&sacat=0&rt=nc&_ipg=240"
+        url = f"https://ebay.com/sch/i.html?_from=R40&_nkw={self.parsed_keywords}&sacat=0&rt=nc&_ipg=240"
 
         self.start_urls = [url]
 

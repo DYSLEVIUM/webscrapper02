@@ -77,7 +77,7 @@ export function CreateScriptForm({ style, closeModal }: CreateScriptFormProps) {
                     Number(val) < 0
                 )
                     return 'Enter a valid number.';
-                if (Number(val) < Number(values.targetPriceMax))
+                if (Number(val) < Number(values.targetPriceMin))
                     return 'Maximum price cannot be smaller that minimum price.';
                 return null;
             },

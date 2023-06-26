@@ -30,11 +30,11 @@ router.post('/create', async (req, res: Response<APIResponse>, next) => {
         name === '' ||
         !keywords ||
         keywords === '' ||
-        !targetPriceMin ||
+        (!targetPriceMin && targetPriceMin !== 0) ||
         isNaN(targetPriceMin) ||
-        !targetPriceMax ||
+        (!targetPriceMax && targetPriceMax !== 0) ||
         isNaN(targetPriceMax) ||
-        Number(targetPriceMin) > Number(targetPriceMax) ||
+        parseFloat(targetPriceMin) > parseFloat(targetPriceMax) ||
         !runFreq ||
         isNaN(runFreq)
     ) {
@@ -47,19 +47,21 @@ router.post('/create', async (req, res: Response<APIResponse>, next) => {
     }
 
     try {
+        console.log('Here in the create 2');
         res.status(200).send({
             message: 'Scrapper started.',
             data: await ScriptManager.addScript(
                 name,
                 parseFloat(targetPriceMin),
                 parseFloat(targetPriceMax),
-                condition,
+                condition ? condition : '',
                 keywords,
                 parseFloat(runFreq)
             ),
             error: null,
         });
     } catch (err) {
+        console.log('Here in the create 3');
         next(
             new ExpressError(
                 `Error while running scrapper for keywords: "${keywords}" and Target Price: $${targetPriceMin} - ${targetPriceMax}.`,
