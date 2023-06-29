@@ -361,7 +361,7 @@ export default class Script {
                                     ); // making new file to write in new_${this.runNumber}.json
 
                                     const title = `(Web Scrapper 2.0) New Items for ${this.keywords} and runNumber ${this.runNumber} found!`;
-                                    const content = `Found ${data.length} new items.`;
+                                    const description = `Found ${data.length} new items.`;
                                     const attachments = [
                                         await Product.exportToCsv(
                                             data,
@@ -375,7 +375,11 @@ export default class Script {
                                     const gmailTransporter =
                                         await getGmailTransporter();
                                     await gmailTransporter
-                                        .sendMail(title, content, attachments)
+                                        .sendMail(
+                                            title,
+                                            description,
+                                            attachments
+                                        )
                                         .catch((err) => {
                                             logger.error(
                                                 `Error sending email for ${this.scriptId}.`,
@@ -384,7 +388,8 @@ export default class Script {
                                         });
 
                                     DiscordTransporter.send(
-                                        title + ' ' + content,
+                                        title,
+                                        description,
                                         attachments
                                     );
 

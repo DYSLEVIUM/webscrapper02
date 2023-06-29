@@ -74,7 +74,7 @@ export const Product: React.FC<ProductProps> = ({ product }) => {
                             <Image
                                 src={image_link}
                                 height={250}
-                                className='object-cover duration-500 ease-in-out hover:opacity-75 min-w-[250px]'
+                                className='object-cover duration-500 ease-in-out hover:opacity-75'
                                 style={{
                                     boxShadow:
                                         'inset 0 0 25px 10px rgba(0, 0, 0, 0.9)',
