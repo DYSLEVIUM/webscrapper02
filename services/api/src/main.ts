@@ -13,6 +13,7 @@ import {
 } from './shared/errors/express';
 import { WSServerStartError } from './shared/errors/ws';
 import { ScriptManager } from './shared/models';
+import { DiscordTransporter } from './shared/models/DiscordTransporter';
 import { accessEnv } from './shared/utils/accessEnv';
 import { logger } from './shared/utils/logger';
 
@@ -88,7 +89,10 @@ const startServers = async () => {
 
 const main = async () => {
     try {
-        await ScriptManager.buildImage();
+        await Promise.all([
+            ScriptManager.buildImage(),
+            DiscordTransporter.init(),
+        ]);
 
         const ws = await startServers();
         ScriptManager.setWS(ws);

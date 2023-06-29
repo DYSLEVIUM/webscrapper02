@@ -36,7 +36,14 @@ export const Product: React.FC<ProductProps> = ({ product }) => {
     const theme = useMantineTheme();
 
     return (
-        <MantineCard shadow='sm' padding='lg' radius='md' withBorder h={'100%'}>
+        <MantineCard
+            shadow='sm'
+            padding='lg'
+            radius='md'
+            withBorder
+            h={'100%'}
+            className='min-w-fit'
+        >
             <MantineCard.Section>
                 <Carousel withIndicators height={250} loop slideGap='sm'>
                     {image_links.map((image_link) => (
@@ -67,7 +74,7 @@ export const Product: React.FC<ProductProps> = ({ product }) => {
                             <Image
                                 src={image_link}
                                 height={250}
-                                className='object-cover duration-500 ease-in-out hover:opacity-75'
+                                className='object-cover duration-500 ease-in-out hover:opacity-75 min-w-[250px]'
                                 style={{
                                     boxShadow:
                                         'inset 0 0 25px 10px rgba(0, 0, 0, 0.9)',
@@ -83,7 +90,7 @@ export const Product: React.FC<ProductProps> = ({ product }) => {
             <Flex mih={270} align='center' justify='center'>
                 <Flex direction='column'>
                     <Spoiler
-                        maxHeight={50}
+                        maxHeight={60}
                         showLabel='Show more'
                         hideLabel='Hide'
                         mt='md'

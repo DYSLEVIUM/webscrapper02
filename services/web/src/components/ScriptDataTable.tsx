@@ -17,6 +17,7 @@ import {
     Button,
     Center,
     Flex,
+    Group,
     Menu,
     Modal,
     MultiSelect,
@@ -622,28 +623,21 @@ export const ScriptDataTable: React.FC<ScriptDataTableProps> = ({
                 // onRowClick={({ scriptId }) => {
                 //     void router.push(`/script/${scriptId}`);
                 // }}
-                // rowExpansion={{
-                //     collapseProps: {
-                //         transitionDuration: 200,
-                //         animateOpacity: true,
-                //         transitionTimingFunction: 'ease-in-out',
-                //     },
-                //     content: ({ record }) => (
-                //         <Stack p='xs' spacing={6}>
-                //             <Group spacing={6}>
-                //                 <Text>Details:</Text>
-                //                 <Text>
-                //                     {record.containerName}, {record.isActive},{' '}
-                //                     {record.runFreq}
-                //                 </Text>
-                //             </Group>
-                //             <Group spacing={6}>
-                //                 <Text>Run Frequency:</Text>
-                //                 <Text>{record.runFreq}</Text>
-                //             </Group>
-                //         </Stack>
-                //     ),
-                // }}
+                rowExpansion={{
+                    collapseProps: {
+                        transitionDuration: 200,
+                        animateOpacity: true,
+                        transitionTimingFunction: 'ease-in-out',
+                    },
+                    content: ({ record }) => (
+                        <Stack p='xs' spacing={6}>
+                            <Group spacing={6}>
+                                <Text>Keywords: </Text>
+                                <Text>{record.keywords}</Text>
+                            </Group>
+                        </Stack>
+                    ),
+                }}
                 idAccessor='scriptId'
                 records={paginatedScripts}
                 sortStatus={sortStatus}

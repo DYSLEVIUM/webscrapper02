@@ -47,7 +47,6 @@ router.post('/create', async (req, res: Response<APIResponse>, next) => {
     }
 
     try {
-        console.log('Here in the create 2');
         res.status(200).send({
             message: 'Scrapper started.',
             data: await ScriptManager.addScript(
@@ -61,7 +60,6 @@ router.post('/create', async (req, res: Response<APIResponse>, next) => {
             error: null,
         });
     } catch (err) {
-        console.log('Here in the create 3');
         next(
             new ExpressError(
                 `Error while running scrapper for keywords: "${keywords}" and Target Price: $${targetPriceMin} - ${targetPriceMax}.`,

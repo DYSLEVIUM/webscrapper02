@@ -11,6 +11,7 @@ import {
 } from '../utils/file';
 import { getGmailTransporter, setDifference } from '../utils/helper';
 import { logger } from '../utils/logger';
+import { DiscordTransporter } from './DiscordTransporter';
 import DockerManager from './DockerManager';
 import { Product } from './Product';
 import ScriptManager from './ScriptManager';
@@ -359,28 +360,34 @@ export default class Script {
                                         data
                                     ); // making new file to write in new_${this.runNumber}.json
 
+                                    const title = `(Web Scrapper 2.0) New Items for ${this.keywords} and runNumber ${this.runNumber} found!`;
+                                    const content = `Found ${data.length} new items.`;
+                                    const attachments = [
+                                        await Product.exportToCsv(
+                                            data,
+                                            this.getRunScriptNewDataPath(
+                                                this.runNumber,
+                                                false
+                                            ) + 'csv'
+                                        ),
+                                    ];
+
                                     const gmailTransporter =
                                         await getGmailTransporter();
                                     await gmailTransporter
-                                        .sendMail(
-                                            `(Web Scrapper 2.0) New Items for ${this.keywords} and runNumber ${this.runNumber} found!`,
-                                            `Found ${data.length} new items.`,
-                                            [
-                                                await Product.exportToCsv(
-                                                    data,
-                                                    this.getRunScriptNewDataPath(
-                                                        this.runNumber,
-                                                        false
-                                                    ) + 'csv'
-                                                ),
-                                            ]
-                                        )
+                                        .sendMail(title, content, attachments)
                                         .catch((err) => {
                                             logger.error(
                                                 `Error sending email for ${this.scriptId}.`,
                                                 err
                                             );
                                         });
+
+                                    DiscordTransporter.send(
+                                        title + ' ' + content,
+                                        attachments
+                                    );
+
                                     ++this.runNumber; // updating runNumber here, not the actual runNumber but is to keep track of the files data runNumber
                                 }
                             } catch (err) {

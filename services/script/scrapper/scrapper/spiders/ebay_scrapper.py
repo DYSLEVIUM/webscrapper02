@@ -91,17 +91,19 @@ class EbayScrapperSpider(scrapy.Spider):
         yield item.load_item()
 
     def __exact_match_keywords(self, name: str) -> bool:
+        lower_name = name.lower()
         for keyword in self.keywords:
-            if keyword.lower() in name.lower():
-                return True
-        return False
+            if not (keyword.lower() in lower_name):
+                return False
+        return True
     
     def __match_condition(self, product_condition: str) -> bool:
         if self.condition == ['']: # get any match
             return True
 
+        lower_product_condition = product_condition.lower()
         for condition in self.condition:
-            if condition.lower() in product_condition.lower():
+            if condition.lower() in lower_product_condition:
                 return True
 
         return False
