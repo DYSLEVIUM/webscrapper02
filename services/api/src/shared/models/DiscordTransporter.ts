@@ -83,7 +83,6 @@ export class DiscordTransporter {
                     (attachmentPath) => new AttachmentBuilder(attachmentPath)
                 ),
             });
-            return;
         }
 
         logger.info(`Sent message to all text channels.`);
