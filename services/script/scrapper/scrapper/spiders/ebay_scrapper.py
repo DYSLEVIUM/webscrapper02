@@ -52,7 +52,7 @@ class EbayScrapperSpider(scrapy.Spider):
         item.add_css("condition", "div.x-item-condition-value span.ux-textspans")
         item.add_css(
             "price",
-            "div.x-price-primary span span.ux-textspans",
+            "div.x-price-primary span.ux-textspans",
         )
         item.add_value("link", response.url)
         item.add_css(

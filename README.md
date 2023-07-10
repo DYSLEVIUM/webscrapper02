@@ -61,19 +61,19 @@ pipreqs --savepath=requirements.in && pip-compile
 ## Build
 
 ```shell
-docker-compose --env-file=./envs/.env.dev -f ./docker/docker-compose.yaml -f ./docker/docker-compose.dev.yaml build --no-cache
+docker compose --env-file=./envs/.env.dev -f ./docker/docker-compose.yaml -f ./docker/docker-compose.dev.yaml build --no-cache
 ```
 
 ## Run
 
 ```shell
-docker-compose --env-file=./envs/.env.dev -f ./docker/docker-compose.yaml -f ./docker/docker-compose.dev.yaml up
+docker compose --env-file=./envs/.env.dev -f ./docker/docker-compose.yaml -f ./docker/docker-compose.dev.yaml up
 ```
 
 ## Down
 
 ```shell
-docker-compose -f ./docker/docker-compose.yaml -f ./docker/docker-compose.dev.yaml down -v
+docker compose -f ./docker/docker-compose.yaml -f ./docker/docker-compose.dev.yaml down -v
 
 ```
 

@@ -66,7 +66,11 @@ export class DiscordTransporter {
         });
     }
 
-    static send(title: string, description: string, attachmentPaths: string[]) {
+    static send(
+        title: string,
+        description: string,
+        attachmentPaths: string[] = []
+    ) {
         const channels = this.discordClient.channels.cache;
 
         const embeds = new EmbedBuilder()

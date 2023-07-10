@@ -396,6 +396,25 @@ export default class Script {
                                     ++this.runNumber; // updating runNumber here, not the actual runNumber but is to keep track of the files data runNumber
                                 }
                             } catch (err) {
+                                const gmailTransporter =
+                                    await getGmailTransporter();
+                                await gmailTransporter
+                                    .sendMail(
+                                        'An Error Occurred',
+                                        'An error occurred, contact admin. Probably, the page layout has changed and it is causing an error.'
+                                    )
+                                    .catch((err) => {
+                                        logger.error(
+                                            `Error sending email for ${this.scriptId}.`,
+                                            err
+                                        );
+                                    });
+
+                                DiscordTransporter.send(
+                                    'An Error Occurred',
+                                    'An error occurred, contact admin. Probably, the page layout has changed and it is causing an error.'
+                                );
+
                                 logger.error(
                                     `Error occurred while doing difference and sending email.`,
                                     err
